@@ -51,8 +51,6 @@ const Header = () => {
   
   const isAdmin = user?.role === 'admin' ? true : false;
 
-  console.log('user', user)
-
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
