@@ -1,20 +1,12 @@
-import express from "express";
-import {
-  createBook,
-  getAllBooks,
-  getBookById,
-  updateBook,
-  deleteBook,
-} from "../controllers/bookController.js";
-import { asyncHandler } from "../middlewares/asyncHandler.js";
-import { validateBook } from "../validators/bookValidator.js";
+import express from 'express';
+import { bookController } from '../controllers/bookController.js';
+import { auth, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post("/books", validateBook, asyncHandler(createBook));
-router.get("/books", asyncHandler(getAllBooks));
-router.get("/books/:id", asyncHandler(getBookById));
-router.put("/books/:id", validateBook, asyncHandler(updateBook));
-router.delete("/books/:id", asyncHandler(deleteBook));
+router.get('/', bookController.getAllBooks);
+router.post('/', auth, isAdmin, bookController.addBook);
+router.put('/:id', auth, isAdmin, bookController.updateBook);
+router.post('/:id/rating', auth, bookController.addRating);
 
 export default router;

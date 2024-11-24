@@ -1,51 +1,57 @@
-import { Book } from "../models/bookModel.js";
+import Book from "../models/bookModel.js"
 
-export const createBook = async (req, res) => {
-  const { title, author, publishYear } = req.body;
-  const book = await Book.create({ title, author, publishYear });
-  res.status(201).json(book);
-};
+export const bookController = {
+  // Get all books
+  getAllBooks: async (req, res) => {
+    try {
+      const books = await Book.find();
+      res.json(books);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
 
-export const getAllBooks = async (req, res) => {
-  const books = await Book.find({});
-  res.status(200).json(books);
-};
+  // Add new book (admin only)
+  addBook: async (req, res) => {
+    try {
+      const book = new Book(req.body);
+      await book.save();
+      res.status(201).json(book);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  },
 
-export const getBookById = async (req, res) => {
-  const book = await Book.findById(req.params.id);
-  if (!book) {
-    res.status(404).json({ message: "Book not found" });
-    return;
+  // Update book (admin only)
+  updateBook: async (req, res) => {
+    try {
+      const book = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      if (!book) return res.status(404).json({ message: 'Book not found' });
+      res.json(book);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  },
+
+  // Add rating
+  addRating: async (req, res) => {
+    try {
+      const { rating, review } = req.body;
+      const book = await Book.findById(req.params.id);
+      
+      if (!book) return res.status(404).json({ message: 'Book not found' });
+      
+      book.ratings.push({
+        user: req.user.userId,
+        rating,
+        review
+      });
+      
+      await book.save();
+      res.json(book);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
   }
-  res.status(200).json(book);
 };
 
-export const updateBook = async (req, res) => {
-  const { id } = req.params;
-  const { title, author, publishYear } = req.body;
-
-  const book = await Book.findByIdAndUpdate(
-    id,
-    { title, author, publishYear },
-    { new: true, runValidators: true }
-  );
-
-  if (!book) {
-    res.status(404).json({ message: "Book not found" });
-    return;
-  }
-
-  res.status(200).json(book);
-};
-
-export const deleteBook = async (req, res) => {
-  const { id } = req.params;
-  const book = await Book.findByIdAndDelete(id);
-
-  if (!book) {
-    res.status(404).json({ message: "Book not found" });
-    return;
-  }
-
-  res.status(200).json({ message: "Book deleted successfully" });
-};
