@@ -1,35 +1,50 @@
-import { Link } from "react-router-dom";
+import React from 'react';
+import {
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Button,
+  Rating,
+  Box
+} from '@mui/material';
 
-const BookCard = ({ book, onDelete }) => {
+const BookCard = ({ book, onAddToCart }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
-      <div className="p-6">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-          <Link
-            to={`/books/${book._id}`}
-            className="hover:text-blue-600 hover:underline"
-          >
-            {book.title}
-          </Link>
-        </h2>
-        <p className="text-gray-600 mb-1">by {book.author}</p>
-        <p className="text-gray-500">Published: {book.publishYear}</p>
-      </div>
-      <div className="bg-gray-100 p-4 flex justify-between items-center">
-        <Link
-          to={`/edit-book/${book._id}`}
-          className="px-4 py-2 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 transition duration-200"
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardMedia
+        component="img"
+        height="200"
+        image={book.imageUrl || '/placeholder.jpg'}
+        alt={book.title}
+      />
+      <CardContent sx={{ flexGrow: 1 }}>
+        <Typography gutterBottom variant="h6" component="h2">
+          {book.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          By {book.author}
+        </Typography>
+        <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
+          ${book.price}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+          <Rating value={book.rating || 0} readOnly precision={0.5} />
+          <Typography variant="body2" sx={{ ml: 1 }}>
+            ({book.ratingCount || 0})
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          fullWidth
+          sx={{ mt: 2 }}
+          disabled={book.stockQuantity === 0}
+          onClick={() => onAddToCart(book.id)}
         >
-          Edit
-        </Link>
-        <button
-          onClick={() => onDelete(book._id)}
-          className="px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition duration-200"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
+          {book.stockQuantity > 0 ? 'Add to Cart' : 'Out of Stock'}
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 
