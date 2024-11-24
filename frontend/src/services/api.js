@@ -13,8 +13,8 @@ api.interceptors.request.use((config) => {
 });
 
 export const auth = {
-  login: (credentials) => api.post('/users/login', credentials),
-  register: (userData) => api.post('/users/register', userData)
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/register', userData)
 };
 
 export const books = {

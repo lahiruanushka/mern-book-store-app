@@ -34,7 +34,8 @@ import {
   Settings,
   Bell
 } from 'lucide-react';
-
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../features/auth/authSlice';
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -44,16 +45,14 @@ const Header = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  // Mock authentication state - replace with your auth context
-  // const isAuthenticated = !!localStorage.getItem('token');
-  // const isAdmin = localStorage.getItem('isAdmin') === 'true';
-
-
-   const isAuthenticated = true;
-   const isAdmin = true;
-
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   
+  const isAdmin = user?.role === 'admin' ? true : false;
+
+  console.log('user', user)
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -74,10 +73,13 @@ const Header = () => {
     setNotificationsAnchor(null);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('isAdmin');
-    navigate('/login');
+   const handleLogout = async () => {
+    try {
+      await dispatch(logout());
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
 const navigationItems = [
