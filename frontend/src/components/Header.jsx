@@ -35,7 +35,7 @@ import {
   Bell
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../features/auth/authSlice';
+import { logout } from '../features/authSlice';
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);

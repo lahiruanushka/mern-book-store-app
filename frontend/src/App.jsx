@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./features/auth/Login";
-import Register from "./features/auth/Register";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import WishlistPage from "./pages/WishlistPage";
@@ -11,7 +11,7 @@ import RedirectIfLoggedIn from "./components/RedirectIfLoggedIn";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "./features/auth/authSlice";
+import { logout } from "./features/authSlice";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -45,7 +45,7 @@ const App = () => {
           path="/login"
           element={
             <RedirectIfLoggedIn>
-              <Login />
+              <LoginPage />
             </RedirectIfLoggedIn>
           }
         />
@@ -53,7 +53,7 @@ const App = () => {
           path="/register"
           element={
             <RedirectIfLoggedIn>
-              <Register />
+              <RegisterPage />
             </RedirectIfLoggedIn>
           }
         />
