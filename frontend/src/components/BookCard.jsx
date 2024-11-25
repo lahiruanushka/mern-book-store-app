@@ -8,14 +8,24 @@ import {
   Rating,
   Box
 } from '@mui/material';
+import fallbackImage from "../assets/Open Book Cartoon Clipart Vector, Cartoon Blue Open Book Illustration, Book, Textbook, Learn PNG Image For Free Download.jfif"
 
 const BookCard = ({ book, onAddToCart }) => {
+
+   const handleAddToCart = async () => {
+    if (!book || !book._id) {
+      console.error('Invalid book data:', book);
+      return;
+    }
+    onAddToCart(book._id);
+  };
+  
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardMedia
         component="img"
         height="200"
-        image={book.imageUrl || '/placeholder.jpg'}
+        image={book.imageUrl ||fallbackImage}
         alt={book.title}
       />
       <CardContent sx={{ flexGrow: 1 }}>
@@ -39,7 +49,7 @@ const BookCard = ({ book, onAddToCart }) => {
           fullWidth
           sx={{ mt: 2 }}
           disabled={book.stockQuantity === 0}
-          onClick={() => onAddToCart(book.id)}
+            onClick={handleAddToCart}
         >
           {book.stockQuantity > 0 ? 'Add to Cart' : 'Out of Stock'}
         </Button>

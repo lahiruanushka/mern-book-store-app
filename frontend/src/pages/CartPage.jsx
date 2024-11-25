@@ -11,9 +11,25 @@ import {
   Typography,
   Button,
   Box,
-  CircularProgress
+  CircularProgress,
+  Card,
+  CardContent,
+  Divider,
+  Snackbar,
+  Alert,
+  useTheme,
+  useMediaQuery,
+  Grid,
+  Skeleton
 } from '@mui/material';
-import { Add, Remove, Delete } from '@mui/icons-material';
+import {
+  Add,
+  Remove,
+  Delete,
+  ShoppingCart,
+  ArrowBack,
+  LocalShipping
+} from '@mui/icons-material';
 import { cart } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,7 +37,10 @@ const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     fetchCart();
@@ -32,8 +51,16 @@ const CartPage = () => {
       setLoading(true);
       setError(null);
       const response = await cart.get();
-      // Ensure we have an array of items
-      const items = Array.isArray(response.data) ? response.data : [];
+      const items = Array.isArray(response.data.items)
+        ? response.data.items.map(item => ({
+            ...item,
+            book: {
+              ...item.book,
+              price: parseFloat(item.book.price) || 0
+            },
+            quantity: parseInt(item.quantity) || 0
+          }))
+        : [];
       setCartItems(items);
     } catch (error) {
       console.error('Error fetching cart:', error);
@@ -43,121 +70,268 @@ const CartPage = () => {
     }
   };
 
-  const handleUpdateQuantity = async (bookId, quantity) => {
+  const handleUpdateQuantity = async (bookId, quantity, currentQuantity) => {
     if (quantity < 1) return;
+    
+    // Optimistic update
+    const updatedItems = cartItems.map(item =>
+      item.book._id === bookId ? { ...item, quantity } : item
+    );
+    setCartItems(updatedItems);
+
     try {
       await cart.updateItem(bookId, quantity);
-      fetchCart();
+      setSnackbar({
+        open: true,
+        message: 'Quantity updated successfully',
+        severity: 'success'
+      });
     } catch (error) {
-      console.error('Error updating quantity:', error);
-      setError('Failed to update quantity. Please try again.');
+      // Revert on failure
+      setCartItems(cartItems);
+      setSnackbar({
+        open: true,
+        message: 'Failed to update quantity',
+        severity: 'error'
+      });
     }
   };
 
   const handleRemoveItem = async (bookId) => {
+    // Optimistic update
+    const filteredItems = cartItems.filter(item => item.book._id !== bookId);
+    setCartItems(filteredItems);
+
     try {
       await cart.removeItem(bookId);
-      fetchCart();
+      setSnackbar({
+        open: true,
+        message: 'Item removed from cart',
+        severity: 'success'
+      });
     } catch (error) {
-      console.error('Error removing item:', error);
-      setError('Failed to remove item. Please try again.');
+      // Revert on failure
+      setCartItems(cartItems);
+      setSnackbar({
+        open: true,
+        message: 'Failed to remove item',
+        severity: 'error'
+      });
     }
   };
 
-  // Safely calculate total amount with validation
-  const totalAmount = Array.isArray(cartItems) 
-    ? cartItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0)
-    : 0;
+  const getItemTotal = (item) => {
+    const price = parseFloat(item.book.price) || 0;
+    const quantity = parseInt(item.quantity) || 0;
+    return price * quantity;
+  };
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const totalAmount = cartItems.reduce((sum, item) => sum + getItemTotal(item), 0);
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const LoadingSkeleton = () => (
+    <Box sx={{ p: 2 }}>
+      <Skeleton variant="rectangular" height={40} sx={{ mb: 2 }} />
+      <Skeleton variant="rectangular" height={200} sx={{ mb: 2 }} />
+      <Skeleton variant="rectangular" height={60} />
+    </Box>
+  );
+
+  if (loading) return <LoadingSkeleton />;
 
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography color="error" gutterBottom>{error}</Typography>
-        <Button variant="contained" onClick={fetchCart}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button
+          variant="contained"
+          onClick={fetchCart}
+          startIcon={<ArrowBack />}
+        >
           Retry
         </Button>
       </Box>
     );
   }
 
+  const CartHeader = () => (
+    <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+      <ShoppingCart sx={{ fontSize: 40, color: theme.palette.primary.main }} />
+      <Typography variant="h4" component="h1">
+        Shopping Cart {totalItems > 0 && `(${totalItems} items)`}
+      </Typography>
+    </Box>
+  );
+
+  const CartSummary = () => (
+    <Card elevation={3} sx={{ position: 'sticky', top: 20 }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>Order Summary</Typography>
+        <Divider sx={{ my: 2 }} />
+        
+        <Box sx={{ mb: 2 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Typography>Subtotal:</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography align="right">${totalAmount.toFixed(2)}</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography>Shipping:</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography align="right">Free</Typography>
+            </Grid>
+          </Grid>
+        </Box>
+        
+        <Divider sx={{ my: 2 }} />
+        
+        <Box sx={{ mb: 3 }}>
+          <Grid container>
+            <Grid item xs={6}>
+              <Typography variant="h6">Total:</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="h6" align="right">
+                ${totalAmount.toFixed(2)}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Box>
+
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          fullWidth
+          onClick={() => navigate('/checkout')}
+          disabled={cartItems.length === 0}
+          startIcon={<LocalShipping />}
+        >
+          Proceed to Checkout
+        </Button>
+        
+        <Button
+          variant="outlined"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={() => navigate('/')}
+          startIcon={<ArrowBack />}
+        >
+          Continue Shopping
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>Shopping Cart</Typography>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+      <CartHeader />
+      
       {cartItems.length === 0 ? (
-        <Typography variant="body1">Your cart is empty</Typography>
+        <Card sx={{ p: 4, textAlign: 'center' }}>
+          <ShoppingCart sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+          <Typography variant="h6" gutterBottom>Your cart is empty</Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            Add some books to your cart and they will appear here
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => navigate('/')}
+            startIcon={<ArrowBack />}
+          >
+            Browse Books
+          </Button>
+        </Card>
       ) : (
-        <>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Book</TableCell>
-                  <TableCell align="right">Price</TableCell>
-                  <TableCell align="center">Quantity</TableCell>
-                  <TableCell align="right">Total</TableCell>
-                  <TableCell align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {cartItems.map((item) => (
-                  <TableRow key={item.bookId}>
-                    <TableCell>{item.title}</TableCell>
-                    <TableCell align="right">${Number(item.price).toFixed(2)}</TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleUpdateQuantity(item.bookId, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        <Remove />
-                      </IconButton>
-                      {item.quantity}
-                      <IconButton
-                        size="small"
-                        onClick={() => handleUpdateQuantity(item.bookId, item.quantity + 1)}
-                      >
-                        <Add />
-                      </IconButton>
-                    </TableCell>
-                    <TableCell align="right">
-                      ${(Number(item.price) * Number(item.quantity)).toFixed(2)}
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        color="error"
-                        onClick={() => handleRemoveItem(item.bookId)}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </TableCell>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={8}>
+            <TableContainer component={Paper} elevation={3}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Book</TableCell>
+                    <TableCell align="right">Price</TableCell>
+                    <TableCell align="center">Quantity</TableCell>
+                    <TableCell align="right">Total</TableCell>
+                    <TableCell align="center">Actions</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h5">
-              Total: ${totalAmount.toFixed(2)}
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              onClick={() => navigate('/checkout')}
-            >
-              Proceed to Checkout
-            </Button>
-          </Box>
-        </>
+                </TableHead>
+                <TableBody>
+                  {cartItems.map((item) => (
+                    <TableRow key={item._id} hover>
+                      <TableCell>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                          {item.book.title}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        ${item.book.price.toFixed(2)}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleUpdateQuantity(item.book._id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                          >
+                            <Remove />
+                          </IconButton>
+                          <Typography sx={{ minWidth: 30, textAlign: 'center' }}>
+                            {item.quantity}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleUpdateQuantity(item.book._id, item.quantity + 1)}
+                          >
+                            <Add />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography sx={{ fontWeight: 500 }}>
+                          ${getItemTotal(item).toFixed(2)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          color="error"
+                          onClick={() => handleRemoveItem(item.book._id)}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <CartSummary />
+          </Grid>
+        </Grid>
       )}
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
