@@ -9,9 +9,15 @@ import NotFoundPage from "./pages/NotFoundPage";
 import Header from "./components/Header";
 import RedirectIfLoggedIn from "./components/RedirectIfLoggedIn";
 import ProtectedRoute from "./components/ProtectedRoute";
-
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "./features/authSlice";
+import ProtectedRouteAdmin from "./components/ProtectedRouteAdmin";
+import ManageOrders from "./components/admin/ManageOrders";
+import ManageBooks from "./components/admin/ManageBooks";
+import ManageUsers from "./components/admin/ManageUsers";
+import Dashboard from "./components/admin/Dashboard";
+import DashboardPage from "./pages/admin/DashboardPage";
+import UnauthorizePage from "./pages/UnauthorizePage";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -75,6 +81,24 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRouteAdmin>
+              <DashboardPage />
+            </ProtectedRouteAdmin>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="orders" element={<ManageOrders />} />
+          <Route path="books" element={<ManageBooks />} />
+          <Route path="users" element={<ManageUsers />} />
+        </Route>
+
+        {/* Unauthorize Routes */}
+        <Route path="/unauthorized" element={<UnauthorizePage />} />
 
         {/* Catch-All */}
         <Route path="*" element={<NotFoundPage />} />
