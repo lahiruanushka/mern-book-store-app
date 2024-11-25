@@ -1,16 +1,17 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './features/auth/Login';
-import Register from './features/auth/Register';
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./features/auth/Login";
+import Register from "./features/auth/Register";
 import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
+import WishlistPage from "./pages/WishlistPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import Header from "./components/Header"
-import RedirectIfLoggedIn from "./components/RedirectIfLoggedIn"
-import ProtectedRoute from "./components/ProtectedRoute"
+import Header from "./components/Header";
+import RedirectIfLoggedIn from "./components/RedirectIfLoggedIn";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-import { useDispatch, useSelector } from 'react-redux';
-import { logout } from './features/auth/authSlice';
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "./features/auth/authSlice";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -34,9 +35,9 @@ const App = () => {
 
   return (
     <BrowserRouter>
-    <Header />
+      <Header />
       <Routes>
-      {/* Public Route */}
+        {/* Public Route */}
         <Route path="/" element={<HomePage />} />
 
         {/* Auth Routes */}
@@ -66,6 +67,14 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/wishlist"
+          element={
+            <ProtectedRoute>
+              <WishlistPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Catch-All */}
         <Route path="*" element={<NotFoundPage />} />
@@ -75,4 +84,3 @@ const App = () => {
 };
 
 export default App;
-

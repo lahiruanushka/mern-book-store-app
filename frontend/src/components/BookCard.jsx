@@ -17,6 +17,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { styled } from '@mui/material/styles';
+import { useSelector } from "react-redux";
 
 // Styled components for enhanced UI
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -66,8 +67,13 @@ const BookmarkButton = styled(IconButton)(({ theme }) => ({
 
 
 
-const BookCard = ({ book, onAddToCart, onAddToWishlist }) => {
-const [isInWishlist, setIsInWishlist] = useState(false);
+const BookCard = ({ book, onAddToCart, onWishlistToggle  }) => {
+
+ // Get wishlist items from Redux store
+  const { items: wishlistItems } = useSelector((state) => state.wishlist || { items: [] });
+  
+  // Check if current book is in wishlist
+  const isInWishlist = wishlistItems?.some(item => item.bookId === book._id);
 
   const handleAddToCart = async () => {
     if (!book || !book._id) {
@@ -78,12 +84,11 @@ const [isInWishlist, setIsInWishlist] = useState(false);
   };
 
   const handleWishlistToggle = () => {
-     if (!book || !book._id) {
+    if (!book || !book._id) {
       console.error('Invalid book data:', book);
       return;
     }
-    
-    onAddToWishlist(book._id);
+    onWishlistToggle(book._id, book.title, book.price, isInWishlist);
   };
 
 
@@ -117,19 +122,19 @@ const [isInWishlist, setIsInWishlist] = useState(false);
               </IconButton>
             </Tooltip>
           </ImageOverlay>
-          <Tooltip 
-            title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"} 
-            arrow 
-            TransitionComponent={Zoom}
-          >
-            <BookmarkButton onClick={handleWishlistToggle}>
-              {isInWishlist ? (
-                <BookmarkIcon color="primary" />
-              ) : (
-                <BookmarkBorderIcon />
-              )}
-            </BookmarkButton>
-          </Tooltip>
+     <Tooltip 
+        title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"} 
+        arrow 
+        TransitionComponent={Zoom}
+      >
+        <BookmarkButton onClick={handleWishlistToggle}>
+          {isInWishlist ? (
+            <BookmarkIcon color="primary" />
+          ) : (
+            <BookmarkBorderIcon />
+          )}
+        </BookmarkButton>
+      </Tooltip>
         </ImageWrapper>
 
         <CardContent sx={{ flexGrow: 1, p: 3 }}>

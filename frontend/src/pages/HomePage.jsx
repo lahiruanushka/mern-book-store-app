@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Grid,
   TextField,
@@ -23,8 +23,8 @@ import {
   ListItem,
   ListItemText,
   Slider,
-  Divider
-} from '@mui/material';
+  Divider,
+} from "@mui/material";
 import {
   Search,
   FilterList,
@@ -33,39 +33,47 @@ import {
   BookmarkBorder,
   LocalLibrary,
   MenuBook,
-  Close
-} from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { books, cart } from '../services/api';
-import BookCard from '../components/BookCard';
+  Close,
+} from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { books, cart } from "../services/api";
+import BookCard from "../components/BookCard";
+import { useDispatch } from "react-redux";
+import { addToWishlist, removeFromWishlist } from "../features/wishlistSlice";
 
 const BOOKS_PER_PAGE = 12;
 
 const HomePage = () => {
   const [booksList, setBooksList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+  const [category, setCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const [page, setPage] = useState(1);
   const [priceRange, setPriceRange] = useState([0, 200]);
-  const [sortBy, setSortBy] = useState('title');
+  const [sortBy, setSortBy] = useState("title");
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  
+
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
 
   const categories = [
-    'Fiction',
-    'Classic',
-    'Mystery',
-    'Science Fiction',
-    'Romance',
-    'Biography',
-    'History',
-    'Self-Help'
+    "Fiction",
+    "Classic",
+    "Mystery",
+    "Science Fiction",
+    "Romance",
+    "Biography",
+    "History",
+    "Self-Help",
   ];
 
   useEffect(() => {
@@ -86,105 +94,136 @@ const HomePage = () => {
 
   const handleError = (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      navigate('/login');
+      localStorage.removeItem("token");
+      navigate("/login");
       return;
     }
-    
-    const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+
+    const errorMessage =
+      error.response?.data?.message || error.message || "An error occurred";
     setNotification({
       open: true,
       message: errorMessage,
-      severity: 'error'
+      severity: "error",
     });
   };
 
   const handleAddToCart = async (bookId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
         setNotification({
           open: true,
-          message: 'Please log in to add items to cart',
-          severity: 'warning'
+          message: "Please log in to add items to cart",
+          severity: "warning",
         });
-        navigate('/login');
+        navigate("/login");
         return;
       }
 
-      if (!bookId) throw new Error('Invalid book ID');
+      if (!bookId) throw new Error("Invalid book ID");
 
       await cart.addItem(bookId, 1);
-      
-      setNotification({
-        open: true,
-        message: 'Book added to cart successfully!',
-        severity: 'success'
-      });
-    } catch (error) {
-      let errorMessage = 'Failed to add book to cart';
-      
-      if (error.details?.status === 400) {
-        errorMessage = error.details?.data?.message || 'Invalid request. Please try again.';
-      } else if (error.message === 'Invalid book ID format') {
-        errorMessage = 'Invalid book format. Please try again.';
-      }
 
       setNotification({
         open: true,
-        message: errorMessage,
-        severity: 'error'
+        message: "Book added to cart!",
+        severity: "success",
+      });
+    } catch (error) {
+ setNotification({
+        open: true,
+        message: error.message || "Failed to add book to cart. Please try again.",
+        severity: "error",
       });
     }
   };
 
-  const handleAddToWishlist = async (bookId) => {
-    console.log(bookId)
+  // Handler for toggling wishlist
+const handleWishlistToggle = async (bookId, title, price, isInWishlist) => {
+  try {
+    // Validate the bookId format before dispatching
+    if (!isValidObjectId(bookId)) {
+      throw new Error('Invalid book ID format');
+    }
+
+    if (isInWishlist) {
+      await dispatch(removeFromWishlist(bookId)).unwrap();
+
+          setNotification({
+        open: true,
+        message: "Book removed from wishlist!",
+        severity: "success",
+      });
+    } else {
+      await dispatch(
+        addToWishlist({
+          bookId,
+          title,
+          price
+        })
+      ).unwrap();
+
+    setNotification({
+        open: true,
+        message: "Book added to wishlist!",
+        severity: "success",
+      });
+
+    }
+  } catch (error) {
+    console.error("Failed to update wishlist:", error);
+      setNotification({
+        open: true,
+        message: error.message || "Failed to update wishlist. Please try again.",
+        severity: "error",
+      });
   }
+};
 
   const handleCloseNotification = () => {
-    setNotification(prev => ({ ...prev, open: false }));
+    setNotification((prev) => ({ ...prev, open: false }));
   };
 
   const handleCategoryToggle = (category) => {
-    setSelectedCategories(prev => 
+    setSelectedCategories((prev) =>
       prev.includes(category)
-        ? prev.filter(c => c !== category)
+        ? prev.filter((c) => c !== category)
         : [...prev, category]
     );
   };
 
   const handleClearFilters = () => {
-    setSearchQuery('');
+    setSearchQuery("");
     setSelectedCategories([]);
     setPriceRange([0, 200]);
-    setSortBy('title');
+    setSortBy("title");
   };
 
-
-const filterAndSortBooks = () => {
+  const filterAndSortBooks = () => {
     let filtered = [...booksList];
 
     // Apply search filter
     if (searchQuery) {
-      filtered = filtered.filter(book => 
-        book.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author?.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (book) =>
+          book.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          book.author?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Apply category filter with proper type checking
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(book => {
+      filtered = filtered.filter((book) => {
         // Handle cases where category might be an array, string, or undefined
-        const bookCategories = Array.isArray(book.category) 
-          ? book.category 
-          : typeof book.category === 'string'
+        const bookCategories = Array.isArray(book.category)
+          ? book.category
+          : typeof book.category === "string"
           ? [book.category]
           : [];
 
-        return selectedCategories.some(selectedCategory => 
-          bookCategories.some(bookCategory =>
+        return selectedCategories.some((selectedCategory) =>
+          bookCategories.some((bookCategory) =>
             bookCategory?.toLowerCase().includes(selectedCategory.toLowerCase())
           )
         );
@@ -192,7 +231,7 @@ const filterAndSortBooks = () => {
     }
 
     // Apply price filter with type checking
-    filtered = filtered.filter(book => {
+    filtered = filtered.filter((book) => {
       const price = parseFloat(book.price) || 0;
       return price >= priceRange[0] && price <= priceRange[1];
     });
@@ -200,12 +239,12 @@ const filterAndSortBooks = () => {
     // Apply sorting with null checks
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'price-asc':
+        case "price-asc":
           return (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0);
-        case 'price-desc':
+        case "price-desc":
           return (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0);
-        case 'title':
-          return (a.title || '').localeCompare(b.title || '');
+        case "title":
+          return (a.title || "").localeCompare(b.title || "");
         default:
           return 0;
       }
@@ -228,15 +267,17 @@ const filterAndSortBooks = () => {
       onClose={() => setFilterDrawerOpen(false)}
     >
       <Box sx={{ width: 280, p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
           <Typography variant="h6">Filters</Typography>
           <IconButton onClick={() => setFilterDrawerOpen(false)}>
             <Close />
           </IconButton>
         </Box>
 
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>Categories</Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          Categories
+        </Typography>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
           {categories.map((cat) => (
             <Chip
               key={cat}
@@ -248,7 +289,9 @@ const filterAndSortBooks = () => {
           ))}
         </Box>
 
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>Price Range</Typography>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          Price Range
+        </Typography>
         <Box sx={{ px: 2 }}>
           <Slider
             value={priceRange}
@@ -257,7 +300,7 @@ const filterAndSortBooks = () => {
             min={0}
             max={200}
           />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
             <Typography color="text.secondary">${priceRange[0]}</Typography>
             <Typography color="text.secondary">${priceRange[1]}</Typography>
           </Box>
@@ -295,13 +338,22 @@ const filterAndSortBooks = () => {
   );
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
-          <LocalLibrary sx={{ mr: 1, verticalAlign: 'bottom' }} />
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{ mb: 2, display: "flex", alignItems: "center" }}
+        >
+          <img
+            src="/icon.ico"
+            alt="Book Store Logo"
+            style={{ width: "40px", height: "40px", marginRight: "8px" }}
+          />
           Book Store
         </Typography>
+
         <Typography variant="body1" color="text.secondary">
           Discover your next favorite book from our collection
         </Typography>
@@ -324,17 +376,17 @@ const filterAndSortBooks = () => {
                 ),
                 endAdornment: searchQuery && (
                   <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setSearchQuery('')}>
+                    <IconButton size="small" onClick={() => setSearchQuery("")}>
                       <Clear />
                     </IconButton>
                   </InputAdornment>
-                )
+                ),
               }}
             />
           </Grid>
-          
+
           <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: "flex", gap: 2 }}>
               <TextField
                 select
                 fullWidth
@@ -346,7 +398,7 @@ const filterAndSortBooks = () => {
                     <InputAdornment position="start">
                       <Sort />
                     </InputAdornment>
-                  )
+                  ),
                 }}
               >
                 <MenuItem value="title">Title (A-Z)</MenuItem>
@@ -374,9 +426,12 @@ const filterAndSortBooks = () => {
         </Grid>
 
         {/* Active Filters */}
-        {(selectedCategories.length > 0 || searchQuery || priceRange[0] > 0 || priceRange[1] < 200) && (
-          <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {selectedCategories.map(cat => (
+        {(selectedCategories.length > 0 ||
+          searchQuery ||
+          priceRange[0] > 0 ||
+          priceRange[1] < 200) && (
+          <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {selectedCategories.map((cat) => (
               <Chip
                 key={cat}
                 label={cat}
@@ -395,7 +450,7 @@ const filterAndSortBooks = () => {
               <Chip
                 label={`Search: ${searchQuery}`}
                 size="small"
-                onDelete={() => setSearchQuery('')}
+                onDelete={() => setSearchQuery("")}
               />
             )}
           </Box>
@@ -403,9 +458,17 @@ const filterAndSortBooks = () => {
       </Paper>
 
       {/* Results Summary */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box
+        sx={{
+          mb: 3,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Typography color="text.secondary">
-          {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'} found
+          {filteredBooks.length} {filteredBooks.length === 1 ? "book" : "books"}{" "}
+          found
         </Typography>
       </Box>
 
@@ -417,28 +480,34 @@ const filterAndSortBooks = () => {
           <Grid container spacing={3}>
             {displayedBooks.map((book) => (
               <Grid item key={book._id} xs={12} sm={6} md={4} lg={3}>
-                <BookCard book={book} onAddToCart={handleAddToCart} onAddToWishlist={handleAddToWishlist} />
+                <BookCard
+                  book={book}
+                  onAddToCart={handleAddToCart}
+                  onWishlistToggle={handleWishlistToggle}
+                />
               </Grid>
             ))}
           </Grid>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
               <Pagination
                 count={totalPages}
                 page={page}
                 onChange={(_, value) => setPage(value)}
                 color="primary"
-                size={isMobile ? 'small' : 'medium'}
+                size={isMobile ? "small" : "medium"}
               />
             </Box>
           )}
         </>
       ) : (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <MenuBook sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6" gutterBottom>No books found</Typography>
+        <Paper sx={{ p: 4, textAlign: "center" }}>
+          <MenuBook sx={{ fontSize: 60, color: "text.secondary", mb: 2 }} />
+          <Typography variant="h6" gutterBottom>
+            No books found
+          </Typography>
           <Typography color="text.secondary" sx={{ mb: 3 }}>
             Try adjusting your search or filters to find what you're looking for
           </Typography>
@@ -460,13 +529,13 @@ const filterAndSortBooks = () => {
         open={notification.open}
         autoHideDuration={6000}
         onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert 
-          onClose={handleCloseNotification} 
+        <Alert
+          onClose={handleCloseNotification}
           severity={notification.severity}
           variant="filled"
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {notification.message}
         </Alert>
