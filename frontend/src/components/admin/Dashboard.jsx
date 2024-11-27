@@ -82,19 +82,6 @@ const Dashboard = () => {
         <Typography variant="h4">
           Dashboard Overview
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => navigate('/admin/books/create')}
-          sx={{ 
-            backgroundColor: theme.palette.success.main,
-            '&:hover': {
-              backgroundColor: theme.palette.success.dark,
-            }
-          }}
-        >
-          Create New Book
-        </Button>
       </Box>
       
       <Grid container spacing={3}>

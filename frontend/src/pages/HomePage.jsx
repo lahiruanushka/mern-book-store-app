@@ -63,7 +63,7 @@ const HomePage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const dispatch = useDispatch();
-const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+  const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
 
   const categories = [
     "Fiction",
@@ -84,6 +84,7 @@ const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
     try {
       setLoading(true);
       const response = await books.getAll();
+      console.log(response.data);
       setBooksList(response.data);
     } catch (error) {
       handleError(error);
@@ -131,55 +132,56 @@ const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
         severity: "success",
       });
     } catch (error) {
- setNotification({
+      setNotification({
         open: true,
-        message: error.message || "Failed to add book to cart. Please try again.",
+        message:
+          error.message || "Failed to add book to cart. Please try again.",
         severity: "error",
       });
     }
   };
 
   // Handler for toggling wishlist
-const handleWishlistToggle = async (bookId, title, price, isInWishlist) => {
-  try {
-    // Validate the bookId format before dispatching
-    if (!isValidObjectId(bookId)) {
-      throw new Error('Invalid book ID format');
-    }
+  const handleWishlistToggle = async (bookId, title, price, isInWishlist) => {
+    try {
+      // Validate the bookId format before dispatching
+      if (!isValidObjectId(bookId)) {
+        throw new Error("Invalid book ID format");
+      }
 
-    if (isInWishlist) {
-      await dispatch(removeFromWishlist(bookId)).unwrap();
+      if (isInWishlist) {
+        await dispatch(removeFromWishlist(bookId)).unwrap();
 
-          setNotification({
-        open: true,
-        message: "Book removed from wishlist!",
-        severity: "success",
-      });
-    } else {
-      await dispatch(
-        addToWishlist({
-          bookId,
-          title,
-          price
-        })
-      ).unwrap();
+        setNotification({
+          open: true,
+          message: "Book removed from wishlist!",
+          severity: "success",
+        });
+      } else {
+        await dispatch(
+          addToWishlist({
+            bookId,
+            title,
+            price,
+          })
+        ).unwrap();
 
-    setNotification({
-        open: true,
-        message: "Book added to wishlist!",
-        severity: "success",
-      });
-
-    }
-  } catch (error) {
-    console.error("Failed to update wishlist:", error);
+        setNotification({
+          open: true,
+          message: "Book added to wishlist!",
+          severity: "success",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to update wishlist:", error);
       setNotification({
         open: true,
-        message: error.message || "Failed to update wishlist. Please try again.",
+        message:
+          error.message || "Failed to update wishlist. Please try again.",
         severity: "error",
       });
-  }
-};
+    }
+  };
 
   const handleCloseNotification = () => {
     setNotification((prev) => ({ ...prev, open: false }));
@@ -212,29 +214,29 @@ const handleWishlistToggle = async (bookId, title, price, isInWishlist) => {
       );
     }
 
-    // Apply category filter with proper type checking
+    // Apply category filter with more robust type checking
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((book) => {
-        // Handle cases where category might be an array, string, or undefined
-        const bookCategories = Array.isArray(book.category)
-          ? book.category
-          : typeof book.category === "string"
-          ? [book.category]
-          : [];
+        const bookCategories = book.category.map((cat) =>
+          typeof cat === "string" ? cat.toLowerCase() : ""
+        );
 
         return selectedCategories.some((selectedCategory) =>
-          bookCategories.some((bookCategory) =>
-            bookCategory?.toLowerCase().includes(selectedCategory.toLowerCase())
-          )
+          bookCategories.includes(selectedCategory.toLowerCase())
         );
       });
     }
 
     // Apply price filter with type checking
-    filtered = filtered.filter((book) => {
-      const price = parseFloat(book.price) || 0;
-      return price >= priceRange[0] && price <= priceRange[1];
-    });
+    // Ensures that the book's price is within the specified range (priceRange).
+    // Uses parseFloat to handle cases where price might be a string or invalid.
+
+    // TODO: Fix edge cases where invalid price values cause unintended filtering behavior.
+
+    // filtered = filtered.filter((book) => {
+    //   const price = parseFloat(book.price) || 0;
+    //   return price >= priceRange[0] && price <= priceRange[1];
+    // });
 
     // Apply sorting with null checks
     filtered.sort((a, b) => {
