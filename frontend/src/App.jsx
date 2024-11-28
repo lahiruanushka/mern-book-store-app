@@ -19,6 +19,8 @@ import Dashboard from "./components/admin/Dashboard";
 import DashboardPage from "./pages/admin/DashboardPage";
 import UnauthorizePage from "./pages/UnauthorizePage";
 import BookDetailsPage from "./pages/BookDetailsPage";
+import OrderProcessingPage from "./pages/OrderProcessingPage";
+import OrdersPage from "./pages/OrdersPage";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -72,6 +74,22 @@ const App = () => {
           element={
             <ProtectedRoute>
               <CartPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <OrderProcessingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <OrdersPage />
             </ProtectedRoute>
           }
         />
