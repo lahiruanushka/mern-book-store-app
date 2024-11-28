@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { fetchWishlist, removeFromWishlist } from "../features/wishlistSlice";
 
 import {
@@ -166,10 +166,14 @@ const WishlistPage = () => {
                       }}
                     >
                       <CardContent sx={{ flexGrow: 1 }}>
-                        <Typography variant="h6" gutterBottom>
-                          {item.title || "Loading book details..."}
-                        </Typography>
-
+                        <Link
+                          to={`/books/${item.bookId}`}
+                          style={{ textDecoration: "none" }}
+                        >
+                          <Typography variant="h6" gutterBottom>
+                            {item.title || "Loading book details..."}
+                          </Typography>
+                        </Link>
                         {item.price && (
                           <Typography
                             variant="h6"

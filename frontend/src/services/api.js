@@ -16,6 +16,9 @@ export const auth = {
   login: (credentials) => api.post("/auth/login", credentials),
   register: (userData) => api.post("/auth/register", userData),
 };
+export const users = {
+  getUser: (id) => api.get(`/users/${id}`),
+};
 export const books = {
   getAll: () => api.get("/books"),
   getBook: (id) => api.get(`/books/${id}`),

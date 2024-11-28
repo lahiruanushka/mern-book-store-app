@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import logger from "./utils/logger.js";
@@ -27,6 +28,7 @@ app.use('/api/books', bookRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/users', userRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

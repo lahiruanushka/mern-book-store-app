@@ -18,6 +18,7 @@ import ManageUsers from "./components/admin/ManageUsers";
 import Dashboard from "./components/admin/Dashboard";
 import DashboardPage from "./pages/admin/DashboardPage";
 import UnauthorizePage from "./pages/UnauthorizePage";
+import BookDetailsPage from "./pages/BookDetailsPage";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -45,6 +46,7 @@ const App = () => {
       <Routes>
         {/* Public Route */}
         <Route path="/" element={<HomePage />} />
+        <Route path="/books/:id" element={<BookDetailsPage />} />
 
         {/* Auth Routes */}
         <Route
