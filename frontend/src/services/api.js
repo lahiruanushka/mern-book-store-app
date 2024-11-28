@@ -21,6 +21,7 @@ export const books = {
   getBook: (id) => api.get(`/books/${id}`),
   addBook: (bookData) => api.post("/books", bookData),
   updateBook: (id, bookData) => api.put(`/books/${id}`, bookData),
+  deleteBook: (id) => api.delete(`/books/${id}`),
   addRating: (id, ratingData) => api.post(`/books/${id}/rating`, ratingData),
 };
 export const cart = {

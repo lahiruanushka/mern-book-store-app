@@ -57,6 +57,27 @@ export const bookController = {
       });
     }
   },
+  // Delete book (admin only)
+  deleteBook: async (req, res) => {
+    try {
+      const book = await Book.findByIdAndDelete(req.params.id);
+
+      if (!book) {
+        return res.status(404).json({
+          message: "Book not found",
+        });
+      }
+
+      res.json({
+        message: "Book successfully deleted",
+        deletedBook: book,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: error.message,
+      });
+    }
+  },
   // Add rating
   addRating: async (req, res) => {
     try {

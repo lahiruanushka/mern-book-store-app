@@ -34,6 +34,7 @@ import {
 } from "@mui/icons-material";
 import { books as booksService } from "../../services/api";
 import AddEditBookModal from "./AddEditBookModal";
+import DeleteBookConfirmationModal from "./DeleteBookConfirmationModal";
 
 const ManageBooks = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,6 +45,8 @@ const ManageBooks = () => {
   const [books, setBooks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [bookToDelete, setBookToDelete] = useState(null);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -51,6 +54,11 @@ const ManageBooks = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    fetchBooks();
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
     fetchBooks();
   };
 
@@ -268,7 +276,14 @@ const ManageBooks = () => {
                             </Tooltip>
 
                             <Tooltip title="Delete">
-                              <IconButton size="small" color="error">
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => {
+                                  setBookToDelete(book);
+                                  setIsDeleteModalOpen(true);
+                                }}
+                              >
                                 <DeleteIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
@@ -296,6 +311,12 @@ const ManageBooks = () => {
         open={isModalOpen}
         onClose={handleCloseModal}
         initialData={editingBook}
+      />
+
+      <DeleteBookConfirmationModal
+        book={bookToDelete}
+        open={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
       />
     </>
   );
