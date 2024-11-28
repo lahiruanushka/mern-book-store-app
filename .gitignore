@@ -24,3 +24,4 @@ backend/error.log
 *.njsproj
 *.sln
 *.sw?
+backend/error.log

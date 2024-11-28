@@ -43,6 +43,7 @@ const ManageBooks = () => {
   const [loading, setLoading] = useState(true);
   const [books, setBooks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingBook, setEditingBook] = useState(null);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -50,6 +51,7 @@ const ManageBooks = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    fetchBooks();
   };
 
   // Simulated API service (replace with actual service)
@@ -85,6 +87,11 @@ const ManageBooks = () => {
     setPage(0);
   };
 
+  const handleEditBook = (book) => {
+    setEditingBook(book);
+    handleOpenModal();
+  };
+
   const filteredBooks = books.filter((book) => {
     const matchesSearch =
       book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,11 +105,6 @@ const ManageBooks = () => {
       (stockFilter === "high" && book.stockQuantity > 10);
     return matchesSearch && matchesStock;
   });
-
-  const handleSaveBook = (bookData) => {
-    // Implement your save logic here
-    console.log(bookData);
-  };
 
   if (loading) {
     return (
@@ -256,10 +258,15 @@ const ManageBooks = () => {
                             justifyContent="flex-end"
                           >
                             <Tooltip title="Edit">
-                              <IconButton size="small" color="primary">
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                onClick={() => handleEditBook(book)}
+                              >
                                 <EditIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
+
                             <Tooltip title="Delete">
                               <IconButton size="small" color="error">
                                 <DeleteIcon fontSize="small" />
@@ -288,8 +295,7 @@ const ManageBooks = () => {
       <AddEditBookModal
         open={isModalOpen}
         onClose={handleCloseModal}
-        // Optional: pass initial data if editing an existing book
-        // initialData={existingBookData}
+        initialData={editingBook}
       />
     </>
   );

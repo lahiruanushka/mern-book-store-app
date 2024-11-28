@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Dialog,
@@ -68,18 +68,36 @@ const AddEditBookModal = ({ open, onClose, initialData }) => {
     reset,
   } = useForm({
     resolver: zodResolver(bookSchema),
-    defaultValues: initialData || {
-      title: "",
-      author: "",
-      description: "",
-      publishYear: new Date().getFullYear(),
-      isbn: "",
-      price: 0,
-      stockQuantity: 0,
-      category: [],
-      imageUrl: "",
+    defaultValues: {
+      title: initialData?.title || "",
+      author: initialData?.author || "",
+      description: initialData?.description || "",
+      publishYear: initialData?.publishYear || new Date().getFullYear(),
+      isbn: initialData?.isbn || "",
+      price: initialData?.price || 0,
+      stockQuantity: initialData?.stockQuantity || 0,
+      category: initialData?.category || [],
+      imageUrl: initialData?.imageUrl || "",
     },
   });
+
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        title: initialData.title || "",
+        author: initialData.author || "",
+        description: initialData.description || "",
+        publishYear: initialData.publishYear || new Date().getFullYear(),
+        isbn: initialData.isbn || "",
+        price: initialData.price || 0,
+        stockQuantity: initialData.stockQuantity || 0,
+        category: initialData.category || [],
+        imageUrl: initialData.imageUrl || "",
+      });
+      setCategories(initialData.category || []);
+      setImagePreview(initialData.imageUrl || "");
+    }
+  }, [initialData, reset]);
 
   const addCategory = () => {
     if (newCategory && !categories.includes(newCategory)) {
@@ -95,7 +113,7 @@ const AddEditBookModal = ({ open, onClose, initialData }) => {
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file && validateFile(file)) {
-      // Validate file size (optional)
+      // Validate file size
       if (file.size > 5 * 1024 * 1024) {
         alert("File is too large. Maximum size is 5MB.");
         return;
@@ -144,8 +162,6 @@ const AddEditBookModal = ({ open, onClose, initialData }) => {
       if (imageFile) {
         const uploadedFile = await storageService.uploadFile(imageFile);
         imageUrl = await storageService.getFilePreview(uploadedFile.$id);
-        console.log(uploadedFile.$id);
-        console.log("Image URL:", imageUrl);
       }
 
       // Prepare book data
@@ -156,10 +172,16 @@ const AddEditBookModal = ({ open, onClose, initialData }) => {
         imageUrl: imageUrl,
       };
 
-      // API call
-      console.log(bookData);
-      const response = await books.addBook(bookData);
-      console.log(response);
+      // Determine if it's an update or new book
+      if (initialData && initialData._id) {
+        // Editing existing book
+        const response = await books.updateBook(initialData._id, bookData);
+        console.log("Book updated:", response);
+      } else {
+        // Adding new book
+        const response = await books.addBook(bookData);
+        console.log("Book added:", response);
+      }
 
       handleClose();
     } catch (error) {
@@ -172,7 +194,7 @@ const AddEditBookModal = ({ open, onClose, initialData }) => {
   return (
     <>
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>Add New Book</DialogTitle>
+        <DialogTitle>{initialData ? "Edit Book" : "Add New Book"}</DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={3} sx={{ mt: 1 }}>
