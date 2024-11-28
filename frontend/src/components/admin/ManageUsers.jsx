@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   FormControl,
   IconButton,
   InputAdornment,
@@ -24,7 +25,14 @@ import {
   Typography,
   Tooltip,
   Avatar,
-} from '@mui/material';
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
 import {
   PersonAdd as PersonAddIcon,
   Search as SearchIcon,
@@ -32,66 +40,171 @@ import {
   Delete as DeleteIcon,
   MoreVert as MoreVertIcon,
   Download as DownloadIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
+import { users as usersService } from "../../services/api";
+import UserDataModal from "./UserDataModal";
 
 const ManageUsers = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
-  const users = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      role: "Customer",
-      joinDate: "2024-01-15",
-      status: "active",
-      lastLogin: "2024-03-25",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      role: "Admin",
-      joinDate: "2024-02-20",
-      status: "active",
-      lastLogin: "2024-03-24",
-    },
-    {
-      id: 3,
-      name: "Bob Wilson",
-      email: "bob@example.com",
-      role: "Manager",
-      joinDate: "2024-02-15",
-      status: "inactive",
-      lastLogin: "2024-03-20",
-    },
-    {
-      id: 4,
-      name: "Alice Brown",
-      email: "alice@example.com",
-      role: "Customer",
-      joinDate: "2024-03-01",
-      status: "active",
-      lastLogin: "2024-03-23",
-    },
-  ];
+  const handleOpenModal = (existingData = null) => {
+    setUserData(existingData);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setUserData(null);
+  };
+
+  // State for Snackbar
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // can be 'success', 'error', 'warning', 'info'
+  });
+
+  // Handler to open Snackbar
+  const openSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
+
+  // Handler to close Snackbar
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar({
+      ...snackbar,
+      open: false,
+    });
+  };
+
+  const handleSubmit = async (data) => {
+    try {
+      if (userData) {
+        await usersService.updateUser(userData._id, data);
+        openSnackbar("User updated successfully", "success");
+        fetchUsers();
+      } else {
+        await usersService.addUser(data);
+        openSnackbar("User added successfully", "success");
+        fetchUsers();
+      }
+      handleCloseModal();
+    } catch (error) {
+      openSnackbar("Failed to save user", "error");
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await usersService.getUsers();
+      setUsers(response.data);
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setError("Failed to load users. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserData = async (id) => {
+    try {
+      setLoading(true);
+      const response = await usersService.getUser(id);
+      setUserData(response.data);
+      setError(null);
+      return response.data; // Return the data
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      setError("Failed to load user data. Please try again.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditUser = async (id) => {
+    const userData = await fetchUserData(id);
+    handleOpenModal(userData);
+  };
+
+  // Delete User Flow
+  const handleDeleteInitiate = (user) => {
+    setUserToDelete(user);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+
+    try {
+      // Call API to delete user
+      await usersService.deleteUser(userToDelete._id);
+
+      // Refresh user list
+      fetchUsers();
+
+      // Show success snackbar
+      openSnackbar("User deleted successfully", "success");
+    } catch (error) {
+      // Show error snackbar
+      openSnackbar("Failed to delete user", "error");
+      console.error("Delete user error:", error);
+    } finally {
+      // Reset delete state
+      setDeleteConfirmOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setUserToDelete(null);
+  };
 
   const getRoleChipProps = (role) => {
     const roleConfig = {
-      Admin: { color: 'error', variant: 'filled' },
-      Manager: { color: 'warning', variant: 'filled' },
-      Customer: { color: 'primary', variant: 'outlined' },
+      admin: { color: "error", variant: "filled" },
+      manager: { color: "warning", variant: "filled" },
+      customer: { color: "primary", variant: "outlined" },
     };
-    return roleConfig[role] || { color: 'default', variant: 'outlined' };
+    return (
+      roleConfig[role.toLowerCase()] || {
+        color: "default",
+        variant: "outlined",
+      }
+    );
   };
 
-  const getStatusChipProps = (status) => {
-    return status === 'active' 
-      ? { color: 'success', label: 'Active' }
-      : { color: 'default', label: 'Inactive' };
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase();
   };
 
   const handleChangePage = (event, newPage) => {
@@ -103,25 +216,66 @@ const ManageUsers = () => {
     setPage(0);
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = 
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === 'all' || user.role.toLowerCase() === roleFilter.toLowerCase();
+    const matchesRole =
+      roleFilter === "all" ||
+      user.role.toLowerCase() === roleFilter.toLowerCase();
     return matchesSearch && matchesRole;
   });
 
-  const getInitials = (name) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase();
-  };
+  // Render loading state
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Stack alignItems="center" spacing={2}>
+          <CircularProgress />
+          <Typography variant="body1">Loading users...</Typography>
+        </Stack>
+      </Box>
+    );
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Stack alignItems="center" spacing={2}>
+          <Typography variant="h6" color="error">
+            {error}
+          </Typography>
+          <Button variant="contained" color="primary" onClick={fetchUsers}>
+            Retry
+          </Button>
+        </Stack>
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+    <Box sx={{ maxWidth: 1200, margin: "auto", p: 3 }}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 3 }}
+      >
         <Typography variant="h4" component="h1">
           User Management
         </Typography>
@@ -129,6 +283,7 @@ const ManageUsers = () => {
           variant="contained"
           startIcon={<PersonAddIcon />}
           color="primary"
+          onClick={() => handleOpenModal()}
         >
           Add New User
         </Button>
@@ -137,9 +292,9 @@ const ManageUsers = () => {
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Stack
-            direction={{ xs: 'column', sm: 'row' }}
+            direction={{ xs: "column", sm: "row" }}
             spacing={2}
-            alignItems={{ xs: 'stretch', sm: 'center' }}
+            alignItems={{ xs: "stretch", sm: "center" }}
           >
             <TextField
               fullWidth
@@ -165,7 +320,6 @@ const ManageUsers = () => {
               >
                 <MenuItem value="all">All Roles</MenuItem>
                 <MenuItem value="admin">Admin</MenuItem>
-                <MenuItem value="manager">Manager</MenuItem>
                 <MenuItem value="customer">Customer</MenuItem>
               </Select>
             </FormControl>
@@ -173,9 +327,9 @@ const ManageUsers = () => {
             <Button
               variant="outlined"
               startIcon={<DownloadIcon />}
-              sx={{ whiteSpace: 'nowrap' }}
+              sx={{ whiteSpace: "nowrap" }}
             >
-              Expor
+              Export
             </Button>
           </Stack>
         </CardContent>
@@ -188,80 +342,90 @@ const ManageUsers = () => {
               <TableCell>User</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Join Date</TableCell>
-              <TableCell>Last Login</TableCell>
+              <TableCell>Created At</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredUsers
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((user) => (
-                <TableRow
-                  key={user.id}
-                  sx={{ 
-                    '&:last-child td, &:last-child th': { border: 0 },
-                    '&:hover': { backgroundColor: 'action.hover' }
-                  }}
-                >
-                  <TableCell>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                      <Avatar sx={{ bgcolor: 'primary.main' }}>
-                        {getInitials(user.name)}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {user.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          ID: {user.id.toString().padStart(4, '0')}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={user.role}
-                      size="small"
-                      {...getRoleChipProps(user.role)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={getStatusChipProps(user.status).label}
-                      size="small"
-                      color={getStatusChipProps(user.status).color}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {new Date(user.joinDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(user.lastLogin).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell align="right">
-                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <Tooltip title="Edit User">
-                        <IconButton size="small" color="primary">
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete User">
-                        <IconButton size="small" color="error">
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="More Actions">
-                        <IconButton size="small">
-                          <MoreVertIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-            ))}
+            {filteredUsers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  <Typography variant="body2" color="text.secondary">
+                    No users found
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredUsers
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((user) => (
+                  <TableRow
+                    key={user._id}
+                    sx={{
+                      "&:last-child td, &:last-child th": { border: 0 },
+                      "&:hover": { backgroundColor: "action.hover" },
+                    }}
+                  >
+                    <TableCell>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Avatar sx={{ bgcolor: "primary.main" }}>
+                          {getInitials(user.name)}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {user.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            ID: {user._id.slice(-4)}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={user.role}
+                        size="small"
+                        {...getRoleChipProps(user.role)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        justifyContent="flex-end"
+                      >
+                        <Tooltip title="Edit User">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleEditUser(user._id)}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete User">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteInitiate(user)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="More Actions">
+                          <IconButton size="small">
+                            <MoreVertIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
         <TablePagination
@@ -274,6 +438,66 @@ const ManageUsers = () => {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </TableContainer>
+
+      <UserDataModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        initialData={userData}
+        onSubmit={handleSubmit}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-user-dialog-title"
+        aria-describedby="delete-user-dialog-description"
+      >
+        <DialogTitle id="delete-user-dialog-title">Delete User?</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-user-dialog-description">
+            Are you sure you want to delete the user
+            <strong> {userToDelete?.name}</strong>? This action cannot be
+            undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar Component */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "center",
+        }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{
+            width: "100%",
+            backgroundColor:
+              snackbar.severity === "success" ? "green" : undefined,
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

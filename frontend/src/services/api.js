@@ -16,9 +16,15 @@ export const auth = {
   login: (credentials) => api.post("/auth/login", credentials),
   register: (userData) => api.post("/auth/register", userData),
 };
+
 export const users = {
   getUser: (id) => api.get(`/users/${id}`),
+  getUsers: () => api.get("/users"),
+  addUser: (userData) => api.post("/users", userData),
+  updateUser: (id, userData) => api.put(`/users/${id}`, userData),
+  deleteUser: (id) => api.delete(`/users/${id}`),
 };
+
 export const books = {
   getAll: () => api.get("/books"),
   getBook: (id) => api.get(`/books/${id}`),
@@ -27,6 +33,7 @@ export const books = {
   deleteBook: (id) => api.delete(`/books/${id}`),
   addRating: (id, ratingData) => api.post(`/books/${id}/rating`, ratingData),
 };
+
 export const cart = {
   get: () => api.get("/cart"),
   addItem: (bookId, quantity) =>
@@ -41,6 +48,7 @@ export const cart = {
   removeItem: (bookId) => api.delete(`/cart/item/${bookId}`),
   clear: () => api.delete("/cart/clear"),
 };
+
 export const orders = {
   create: (orderData) => api.post("/orders", orderData),
   getMyOrders: () => api.get("/orders/my-orders"),
@@ -49,6 +57,7 @@ export const orders = {
       status,
     }),
 };
+
 export const wishlist = {
   get: () => api.get("/wishlist"),
   addItem: (bookData) =>

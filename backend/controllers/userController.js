@@ -2,7 +2,6 @@ import User from "../models/userModel.js";
 import bcrypt from "bcryptjs"; // Recommended for password hashing
 
 export const userController = {
-  // Existing method
   getUserById: async (req, res) => {
     try {
       const userId = req.params.id;
@@ -14,9 +13,9 @@ export const userController = {
         });
       }
 
-      // Find user by ID and select only the name
+      // Find user by ID and exclude the password field
       const user = await User.findById(userId)
-        .select("name") // Only select the name field
+        .select("-password") // Exclude the password field
         .lean(); // Convert to plain JavaScript object
 
       // Check if user exists
@@ -26,16 +25,16 @@ export const userController = {
         });
       }
 
-      // Return only the user's name
-      return res.status(200).json({ name: user.name });
+      // Return user data without password
+      return res.status(200).json(user);
     } catch (error) {
-      res.status(400).json({
-        message: error.message,
+      res.status(500).json({
+        message: "Internal server error",
+        error: error.message,
       });
     }
   },
-
-  // New method: Get all users (without passwords)
+  //  Get all users (without passwords)
   getAllUsers: async (req, res) => {
     try {
       // Find all users, excluding the password field
@@ -52,7 +51,7 @@ export const userController = {
     }
   },
 
-  // New method: Update user data
+  // Update user data
   updateUser: async (req, res) => {
     try {
       const userId = req.params.id;
@@ -127,7 +126,7 @@ export const userController = {
     }
   },
 
-  // New method: Add new user account
+  // Add new user account
   addUser: async (req, res) => {
     try {
       const { name, email, password, address, role } = req.body;
