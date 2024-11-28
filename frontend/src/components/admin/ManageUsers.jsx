@@ -175,7 +175,7 @@ const ManageUsers = () => {
               startIcon={<DownloadIcon />}
               sx={{ whiteSpace: 'nowrap' }}
             >
-              Export Users
+              Expor
             </Button>
           </Stack>
         </CardContent>
