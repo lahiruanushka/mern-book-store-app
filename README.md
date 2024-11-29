@@ -49,6 +49,7 @@ BookWhiz is a MERN-based bookstore application that provides users with a seamle
 - **React.js**: Dynamic user interface.
 - **Material-UI (MUI)**: Modern, responsive design.
 - **Redux**: State management for a seamless user experience.
+- **React-hook-form**: Utilize React Hook Form and Zod for efficient and schema-based form validation
 
 ### Backend:
 - **Node.js**: Scalable and efficient backend server.
