@@ -1,5 +1,5 @@
-import Cart from "../models/cartModel.js"
-import Order from "../models/orderModel.js"
+import Cart from "../models/cartModel.js";
+import Order from "../models/orderModel.js";
 import stripe from "stripe";
 
 export const orderController = {
@@ -7,29 +7,31 @@ export const orderController = {
   createOrder: async (req, res) => {
     try {
       const { shippingAddress } = req.body;
-      const cart = await Cart.findOne({ user: req.user.userId }).populate('items.book');
-      
+      const cart = await Cart.findOne({ user: req.user.userId }).populate(
+        "items.book"
+      );
+
       if (!cart || cart.items.length === 0) {
-        return res.status(400).json({ message: 'Cart is empty' });
+        return res.status(400).json({ message: "Cart is empty" });
       }
 
       const totalAmount = cart.items.reduce((total, item) => {
-        return total + (item.book.price * item.quantity);
+        return total + item.book.price * item.quantity;
       }, 0);
 
       const order = new Order({
         user: req.user.userId,
-        items: cart.items.map(item => ({
+        items: cart.items.map((item) => ({
           book: item.book._id,
           quantity: item.quantity,
-          priceAtTime: item.book.price
+          priceAtTime: item.book.price,
         })),
         totalAmount,
-        shippingAddress
+        shippingAddress,
       });
 
       await order.save();
-      
+
       // Clear cart after order creation
       cart.items = [];
       await cart.save();
@@ -44,7 +46,7 @@ export const orderController = {
   getUserOrders: async (req, res) => {
     try {
       const orders = await Order.find({ user: req.user.userId })
-        .populate('items.book')
+        .populate("items.book")
         .sort({ createdAt: -1 });
       res.json(orders);
     } catch (error) {
@@ -61,10 +63,25 @@ export const orderController = {
         { status },
         { new: true }
       );
-      if (!order) return res.status(404).json({ message: 'Order not found' });
+      if (!order) return res.status(404).json({ message: "Order not found" });
       res.json(order);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
+
+  // Get all orders (admin only)
+  getAllOrders: async (req, res) => {
+    try {
+      // Ensure this route is protected with admin privileges
+      const orders = await Order.find()
+        .populate("items.book")
+        .populate("user", "name email") // Populate user details if needed
+        .sort({ createdAt: -1 }); // Sort by newest first
+
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
 };

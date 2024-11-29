@@ -52,6 +52,7 @@ export const cart = {
 export const orders = {
   create: (orderData) => api.post("/orders", orderData),
   getMyOrders: () => api.get("/orders/my-orders"),
+  getAllOrders: () => api.get("/orders"),
   updateStatus: (orderId, status) =>
     api.put(`/orders/${orderId}/status`, {
       status,
