@@ -69,3 +69,7 @@ export const wishlist = {
     }),
   removeItem: (bookId) => api.delete(`/wishlist/remove/${bookId}`),
 };
+
+export const dashboard = {
+  getStats: () => api.get("/dashboard/stats"),
+};
