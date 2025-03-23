@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -19,8 +19,8 @@ import {
   Divider,
   useTheme,
   useMediaQuery,
-  Avatar
-} from '@mui/material';
+  Avatar,
+} from "@mui/material";
 import {
   Menu as MenuIcon,
   Search,
@@ -32,10 +32,10 @@ import {
   BookOpen,
   Library,
   Settings,
-  Bell
-} from 'lucide-react';
-import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../features/authSlice';
+  Bell,
+} from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../features/authSlice";
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -43,13 +43,13 @@ const Header = () => {
   const [notificationsAnchor, setNotificationsAnchor] = useState(null);
   const [cartCount, setCartCount] = useState(0);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { isAuthenticated, user } = useSelector((state) => state.auth);
-  
-  const isAdmin = user?.role === 'admin' ? true : false;
+
+  const isAdmin = user?.role === "admin" ? true : false;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -71,27 +71,37 @@ const Header = () => {
     setNotificationsAnchor(null);
   };
 
-   const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
       await dispatch(logout());
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error("Error during logout:", error);
     }
   };
 
-const navigationItems = [
-    { text: 'Home', icon: <Home size={24} />, path: '/' },
-    { text: 'Categories', icon: <BookOpen size={24} />, path: '/categories' },
-    { text: 'New Releases', icon: <Library size={24} />, path: '/new-releases' },
-    { text: 'Admin Panel', icon: <Settings size={24} />, path: '/admin', admin: true },
-];
+  const navigationItems = [
+    { text: "Home", icon: <Home size={24} />, path: "/" },
+    { text: "Categories", icon: <BookOpen size={24} />, path: "/categories" },
+    {
+      text: "New Releases",
+      icon: <Library size={24} />,
+      path: "/new-releases",
+    },
+    {
+      text: "Admin Panel",
+      icon: <Settings size={24} />,
+      path: "/admin",
+      admin: true,
+    },
+  ];
 
   const drawer = (
     <Box sx={{ width: 250 }} role="presentation">
       <List>
         {navigationItems.map((item) => {
-          if ((item.auth && !isAuthenticated) || (item.admin && !isAdmin)) return null;
+          if ((item.auth && !isAuthenticated) || (item.admin && !isAdmin))
+            return null;
           return (
             <ListItem
               button
@@ -128,24 +138,25 @@ const navigationItems = [
           <Typography
             variant="h6"
             component="div"
-            sx={{ 
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
+            sx={{
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
             }}
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
           >
             <Library size={24} />
-           BookWhiz
+            BookWhiz
           </Typography>
 
           <Box sx={{ flexGrow: 1 }} />
 
           {!isMobile && (
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: "flex", gap: 1 }}>
               {navigationItems.map((item) => {
-                if ((item.auth && !isAuthenticated) || (item.admin && !isAdmin)) return null;
+                if ((item.auth && !isAuthenticated) || (item.admin && !isAdmin))
+                  return null;
                 return (
                   <Button
                     key={item.text}
@@ -160,7 +171,7 @@ const navigationItems = [
             </Box>
           )}
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {isAuthenticated ? (
               <>
                 <IconButton color="inherit" onClick={handleNotificationsOpen}>
@@ -169,7 +180,7 @@ const navigationItems = [
                   </Badge>
                 </IconButton>
 
-                <IconButton color="inherit" onClick={() => navigate('/cart')}>
+                <IconButton color="inherit" onClick={() => navigate("/cart")}>
                   <Badge badgeContent={cartCount} color="error">
                     <ShoppingCart size={24} />
                   </Badge>
@@ -183,10 +194,10 @@ const navigationItems = [
               </>
             ) : (
               <>
-                <Button color="inherit" onClick={() => navigate('/login')}>
+                <Button color="inherit" onClick={() => navigate("/login")}>
                   Login
                 </Button>
-                <Button color="inherit" onClick={() => navigate('/register')}>
+                <Button color="inherit" onClick={() => navigate("/register")}>
                   Register
                 </Button>
               </>
@@ -212,21 +223,44 @@ const navigationItems = [
         open={Boolean(userMenuAnchor)}
         onClose={handleUserMenuClose}
       >
-        <MenuItem onClick={() => { navigate('/profile'); handleUserMenuClose(); }}>
-          <ListItemIcon><User size={20} /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            navigate("/profile");
+            handleUserMenuClose();
+          }}
+        >
+          <ListItemIcon>
+            <User size={20} />
+          </ListItemIcon>
           Profile
         </MenuItem>
-        <MenuItem onClick={() => { navigate('/orders'); handleUserMenuClose(); }}>
-          <ListItemIcon><ShoppingCart size={20} /></ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            navigate("/orders");
+            handleUserMenuClose();
+          }}
+        >
+          <ListItemIcon>
+            <ShoppingCart size={20} />
+          </ListItemIcon>
           My Orders
         </MenuItem>
-        <MenuItem onClick={() => { navigate('/wishlist'); handleUserMenuClose(); }}>
-  <ListItemIcon><Bookmark size={20} /></ListItemIcon>
-  Wishlist
-</MenuItem>
+        <MenuItem
+          onClick={() => {
+            navigate("/wishlist");
+            handleUserMenuClose();
+          }}
+        >
+          <ListItemIcon>
+            <Bookmark size={20} />
+          </ListItemIcon>
+          Wishlist
+        </MenuItem>
         <Divider />
         <MenuItem onClick={handleLogout}>
-          <ListItemIcon><LogOut size={20} /></ListItemIcon>
+          <ListItemIcon>
+            <LogOut size={20} />
+          </ListItemIcon>
           Logout
         </MenuItem>
       </Menu>

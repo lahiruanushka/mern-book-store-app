@@ -32,6 +32,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Menu,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   PersonAdd as PersonAddIcon,
@@ -40,9 +43,11 @@ import {
   Delete as DeleteIcon,
   MoreVert as MoreVertIcon,
   Download as DownloadIcon,
+  Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import { users as usersService } from "../../services/api";
 import UserDataModal from "./UserDataModal";
+import UserInformationModal from "./UserInformationModal";
 
 const ManageUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -56,6 +61,17 @@ const ManageUsers = () => {
   const [userData, setUserData] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+
+  const handleOpenUserModal = (userId) => {
+    setSelectedUserId(userId);
+    setIsUserModalOpen(true);
+  };
+
+  const handleCloseUserModal = () => {
+    setIsUserModalOpen(false);
+  };
 
   const handleOpenModal = (existingData = null) => {
     setUserData(existingData);
@@ -147,14 +163,24 @@ const ManageUsers = () => {
   };
 
   const handleEditUser = async (id) => {
+    console.log("Edit user", id);
     const userData = await fetchUserData(id);
     handleOpenModal(userData);
+  };
+
+  const handleView = (id) => {
+    handleViewUser(id);
+    console.log("View user", id);
   };
 
   // Delete User Flow
   const handleDeleteInitiate = (user) => {
     setUserToDelete(user);
     setDeleteConfirmOpen(true);
+  };
+
+  const handleViewUser = (userId) => {
+    handleOpenUserModal(userId);
   };
 
   const handleDeleteConfirm = async () => {
@@ -393,35 +419,27 @@ const ManageUsers = () => {
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell align="right">
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        justifyContent="flex-end"
+                      <IconButton
+                        size="small"
+                        onClick={() => handleView(user._id)}
+                        aria-label="View"
                       >
-                        <Tooltip title="Edit User">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => handleEditUser(user._id)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete User">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleDeleteInitiate(user)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="More Actions">
-                          <IconButton size="small">
-                            <MoreVertIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
+                        <VisibilityIcon fontSize="small" color="info" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEditUser(user._id)}
+                        aria-label="Edit"
+                      >
+                        <EditIcon fontSize="small" color="primary" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDeleteInitiate(user)}
+                        aria-label="Delete"
+                      >
+                        <DeleteIcon fontSize="small" color="error" />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))
@@ -498,6 +516,12 @@ const ManageUsers = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <UserInformationModal
+        isOpen={isUserModalOpen}
+        onClose={handleCloseUserModal}
+        userId={selectedUserId}
+      />
     </Box>
   );
 };

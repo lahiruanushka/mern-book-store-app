@@ -1,5 +1,5 @@
 import User from "../models/userModel.js";
-import bcrypt from "bcryptjs"; // Recommended for password hashing
+import bcrypt from "bcryptjs";
 
 export const userController = {
   getUserById: async (req, res) => {

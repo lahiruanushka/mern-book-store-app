@@ -21,6 +21,7 @@ import UnauthorizePage from "./pages/UnauthorizePage";
 import BookDetailsPage from "./pages/BookDetailsPage";
 import OrderProcessingPage from "./pages/OrderProcessingPage";
 import OrdersPage from "./pages/OrdersPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -98,6 +99,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <WishlistPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
