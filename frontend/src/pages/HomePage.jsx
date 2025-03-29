@@ -348,12 +348,7 @@ const HomePage = () => {
           component="h1"
           sx={{ mb: 2, display: "flex", alignItems: "center" }}
         >
-          <img
-            src="/icon.ico"
-            alt="Book Store Logo"
-            style={{ width: "40px", height: "40px", marginRight: "8px" }}
-          />
-          Book Store
+          BookWhiz
         </Typography>
 
         <Typography variant="body1" color="text.secondary">

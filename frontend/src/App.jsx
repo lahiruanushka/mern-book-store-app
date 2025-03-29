@@ -22,6 +22,8 @@ import BookDetailsPage from "./pages/BookDetailsPage";
 import OrderProcessingPage from "./pages/OrderProcessingPage";
 import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
+import { Box, Container } from "@mui/material";
+import Footer from "./components/Footer";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -132,6 +134,10 @@ const App = () => {
         {/* Catch-All */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+
+      {/* <Footer /> */}
+
+      <Footer />
     </BrowserRouter>
   );
 };

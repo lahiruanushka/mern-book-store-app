@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../features/authSlice";
+import Logo from "../assets/book.jfif";
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -146,7 +147,11 @@ const Header = () => {
             }}
             onClick={() => navigate("/")}
           >
-            <Library size={24} />
+            <img
+              src={Logo}
+              alt="Logo"
+              style={{ width: 40, height: 40, borderRadius: "50%" }}
+            />
             BookWhiz
           </Typography>
 
