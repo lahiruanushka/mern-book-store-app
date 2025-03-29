@@ -22,7 +22,6 @@ import BookDetailsPage from "./pages/BookDetailsPage";
 import OrderProcessingPage from "./pages/OrderProcessingPage";
 import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
-import { Box, Container } from "@mui/material";
 import Footer from "./components/Footer";
 
 const App = () => {

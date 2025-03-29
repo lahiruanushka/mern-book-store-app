@@ -83,7 +83,6 @@ const Header = () => {
 
   const navigationItems = [
     { text: "Home", icon: <Home size={24} />, path: "/" },
-    { text: "Categories", icon: <BookOpen size={24} />, path: "/categories" },
     {
       text: "New Releases",
       icon: <Library size={24} />,

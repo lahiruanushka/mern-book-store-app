@@ -63,8 +63,9 @@ const UserProfile = () => {
     setLoading(true);
     try {
       // const response = await userProfileService.getProfile();
-      // const profileData = response.data;
-      // setUserData(profileData);
+       
+  
+      //setUserData(profileData);
       setFormData({
         name: profileData.name,
         email: profileData.email,
