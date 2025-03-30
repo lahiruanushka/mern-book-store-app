@@ -25,6 +25,7 @@ import ProfilePage from "./pages/ProfilePage";
 import Footer from "./components/Footer";
 import AutoScrollToTop from "./components/AutoScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
+import NewReleasesPage from "./pages/NewReleasesPage";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -56,6 +57,7 @@ const App = () => {
         {/* Public Route */}
         <Route path="/" element={<HomePage />} />
         <Route path="/books/:id" element={<BookDetailsPage />} />
+        <Route path="new-releases" element={<NewReleasesPage />} />
 
         {/* Auth Routes */}
         <Route
