@@ -23,6 +23,8 @@ import OrderProcessingPage from "./pages/OrderProcessingPage";
 import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
 import Footer from "./components/Footer";
+import AutoScrollToTop from "./components/AutoScrollToTop";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -47,6 +49,9 @@ const App = () => {
   return (
     <BrowserRouter>
       <Header />
+      {/* AutoScrollToTop will handle scrolling on route changes */}
+      <AutoScrollToTop />
+
       <Routes>
         {/* Public Route */}
         <Route path="/" element={<HomePage />} />
@@ -134,8 +139,10 @@ const App = () => {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
-      {/* <Footer /> */}
+      {/* ScrollToTopButton will appear when scrolling down */}
+      <ScrollToTopButton />
 
+      {/* <Footer /> */}
       <Footer />
     </BrowserRouter>
   );
