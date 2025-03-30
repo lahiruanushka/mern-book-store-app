@@ -35,6 +35,7 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../features/authSlice";
+import { profile as profileService } from "../services/api";
 
 const UserProfile = () => {
   const [userData, setUserData] = useState(null);
@@ -50,6 +51,9 @@ const UserProfile = () => {
     severity: "success",
   });
 
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -62,10 +66,10 @@ const UserProfile = () => {
   const fetchUserProfile = async () => {
     setLoading(true);
     try {
-      // const response = await userProfileService.getProfile();
-       
-  
-      //setUserData(profileData);
+      const response = await profileService.getProfile();
+
+      const profileData = response.data;
+      setUserData(profileData);
       setFormData({
         name: profileData.name,
         email: profileData.email,
@@ -88,11 +92,15 @@ const UserProfile = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      // Replace with your actual API call
-      // const response = await userProfileService.updateProfile(formData);
-      // const updatedUser = response.data;
+      const response = await profileService.updateProfile(formData);
+      const updatedUser = response.data;
 
-      // setUserData(updatedUser);
+      setUserData(updatedUser.user);
+      setFormData({
+        name: updatedUser.name,
+        email: updatedUser.email,
+      });
+
       setEditMode(false);
       showNotification("Profile updated successfully", "success");
     } catch (err) {
@@ -101,26 +109,39 @@ const UserProfile = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteWithPassword = async () => {
     try {
-      // API call here
+      setPasswordError("");
+
+      console.log(confirmPassword);
+
+      // Call your API to verify password and delete account
+      const response = await profileService.deleteAccount(confirmPassword);
+
+      console.log(response);
 
       showNotification("Account deleted successfully", "success");
       // Redirect to login page after a short delay
       setTimeout(() => {
         handleLogout();
       }, 2000);
-    } catch (err) {
-      console.error("Failed to delete account:", err);
+    } catch (error) {
+      console.error("Failed to delete account:", error);
       showNotification("Failed to delete account. Please try again.", "error");
-      setOpenDeleteDialog(false);
     }
   };
+
+  // Reset password field when dialog opens/closes
+  useEffect(() => {
+    if (!openDeleteDialog) {
+      setConfirmPassword("");
+      setPasswordError("");
+    }
+  }, [openDeleteDialog]);
 
   const handleLogout = async () => {
     try {
       await dispatch(logout());
-      navigate("/login");
       // Redirect to login page
       navigate("/login");
     } catch (err) {
@@ -216,18 +237,18 @@ const UserProfile = () => {
                   fontSize: 64,
                 }}
               >
-                {user.name?.charAt(0)?.toUpperCase()}
+                {userData.name?.charAt(0)?.toUpperCase()}
               </Avatar>
 
               <Typography variant="h5" sx={{ mt: 2 }}>
-                {user.name}
+                {userData.name}
               </Typography>
 
               <Typography variant="body1" color="textSecondary">
-                {user.email}
+                {userData.email}
               </Typography>
 
-              {user.role === "admin" && (
+              {userData.role === "admin" && (
                 <Chip
                   icon={<AdminIcon />}
                   label="Administrator"
@@ -236,7 +257,7 @@ const UserProfile = () => {
                 />
               )}
 
-              {user.role !== "admin" && (
+              {userData.role !== "admin" && (
                 <Chip
                   icon={<PersonIcon />}
                   label="User"
@@ -359,6 +380,7 @@ const UserProfile = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    disabled
                   />
                 </Grid>
               </Grid>
@@ -440,13 +462,30 @@ const UserProfile = () => {
             undone and all your data will be permanently removed from our
             system.
           </DialogContentText>
+          <DialogContentText sx={{ mt: 2 }}>
+            Please enter your password to confirm this action:
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="password"
+            label="Password"
+            type="password"
+            fullWidth
+            variant="outlined"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            error={!!passwordError}
+            helperText={passwordError}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
           <Button
-            onClick={handleDeleteAccount}
+            onClick={handleDeleteWithPassword}
             color="error"
             variant="contained"
+            disabled={!confirmPassword}
           >
             Delete Account
           </Button>

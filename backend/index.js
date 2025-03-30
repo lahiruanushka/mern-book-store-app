@@ -7,6 +7,7 @@ import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
 import dashRoutes from "./routes/dashRoutes.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import logger from "./utils/logger.js";
@@ -29,6 +30,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/dashboard", dashRoutes);
 
 // Error handling middleware

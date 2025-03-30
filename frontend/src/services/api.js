@@ -25,6 +25,18 @@ export const users = {
   deleteUser: (id) => api.delete(`/users/${id}`),
 };
 
+export const profile = {
+  getProfile: () => api.get("/profile/me"),
+  updateProfile: (profileData) => api.put("/profile/me", profileData),
+  changePassword: (passwordData) =>
+    api.put("/profile/change-password", passwordData),
+  updateAddress: (addressData) => api.put("/profile/address", addressData),
+  deleteAccount: (password) =>
+    api.delete("/profile/delete-account", {
+      data: { password },
+    }),
+};
+
 export const books = {
   getAll: () => api.get("/books"),
   getBook: (id) => api.get(`/books/${id}`),
