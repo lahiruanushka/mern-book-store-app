@@ -42,28 +42,7 @@ export class StorageService {
       throw new Error("File ID is required.");
     }
 
-    try {
-      const result = await this.bucket.getFilePreview(
-        conf.appwriteBucketId,
-        fileId,
-        1800, // width; will be resized using this value.
-        0, // height; ignored when 0
-        "center", // crop center
-        "90", // slight compression
-        5, // border width
-        "CDCA30", // border color
-        15, // border radius
-        1, // full opacity
-        0, // no rotation
-        "FFFFFF", // background color
-        "jpg" // output jpg format
-      );
-
-      return result; // Return the URL for the image preview
-    } catch (error) {
-      console.error("Error fetching file preview:", error);
-      throw new Error("Failed to fetch file preview."); // Rethrow with context
-    }
+    return `https://cloud.appwrite.io/v1/storage/buckets/${conf.appwriteBucketId}/files/${fileId}/view?project=${conf.appwriteProjectId}&mode=admin`;
   }
 }
 
