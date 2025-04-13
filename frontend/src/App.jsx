@@ -1,151 +1,156 @@
-import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// Pages
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import WishlistPage from "./pages/WishlistPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import Header from "./components/Header";
-import RedirectIfLoggedIn from "./components/RedirectIfLoggedIn";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "./features/authSlice";
-import ProtectedRouteAdmin from "./components/ProtectedRouteAdmin";
-import ManageOrders from "./components/admin/ManageOrders";
-import ManageBooks from "./components/admin/ManageBooks";
-import ManageUsers from "./components/admin/ManageUsers";
-import Dashboard from "./components/admin/Dashboard";
-import DashboardPage from "./pages/admin/DashboardPage";
-import UnauthorizePage from "./pages/UnauthorizePage";
 import BookDetailsPage from "./pages/BookDetailsPage";
 import OrderProcessingPage from "./pages/OrderProcessingPage";
 import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
+import NewReleasesPage from "./pages/NewReleasesPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ResendVerificationPage from "./pages/ResendVerificationPage";
+import UnauthorizePage from "./pages/UnauthorizePage";
+import DashboardPage from "./pages/admin/DashboardPage";
+
+// Components
+import Header from "./components/Header";
 import Footer from "./components/Footer";
+import RedirectIfLoggedIn from "./components/auth/RedirectIfLoggedIn";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ProtectedRouteAdmin from "./components/auth/ProtectedRouteAdmin";
 import AutoScrollToTop from "./components/AutoScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
-import NewReleasesPage from "./pages/NewReleasesPage";
+
+// Admin Components
+import Dashboard from "./components/admin/Dashboard";
+import ManageOrders from "./components/admin/ManageOrders";
+import ManageBooks from "./components/admin/ManageBooks";
+import ManageUsers from "./components/admin/ManageUsers";
+import AuthVerification from "./components/auth/AuthVerification";
 
 const App = () => {
-  const dispatch = useDispatch();
-  const { token } = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    const verifyAuth = async () => {
-      if (!token) {
-        dispatch(logout());
-      }
-      // @Todo: Add API call to verify token
-      // try {
-      //   await auth.verifyToken();
-      // } catch (err) {
-      //   dispatch(logout());
-      // }
-    };
-
-    verifyAuth();
-  }, [dispatch, token]);
-
   return (
     <BrowserRouter>
-      <Header />
-      {/* AutoScrollToTop will handle scrolling on route changes */}
-      <AutoScrollToTop />
+      <AuthVerification>
+        <Header />
+        {/* AutoScrollToTop will handle scrolling on route changes */}
+        <AutoScrollToTop />
 
-      <Routes>
-        {/* Public Route */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/books/:id" element={<BookDetailsPage />} />
-        <Route path="new-releases" element={<NewReleasesPage />} />
+        <Routes>
+          {/* Public Route */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/books/:id" element={<BookDetailsPage />} />
+          <Route path="new-releases" element={<NewReleasesPage />} />
 
-        {/* Auth Routes */}
-        <Route
-          path="/login"
-          element={
-            <RedirectIfLoggedIn>
-              <LoginPage />
-            </RedirectIfLoggedIn>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <RedirectIfLoggedIn>
-              <RegisterPage />
-            </RedirectIfLoggedIn>
-          }
-        />
+          {/* Auth Routes */}
+          <Route
+            path="/login"
+            element={
+              <RedirectIfLoggedIn>
+                <LoginPage />
+              </RedirectIfLoggedIn>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <RedirectIfLoggedIn>
+                <RegisterPage />
+              </RedirectIfLoggedIn>
+            }
+          />
+          <Route
+            path="/verify-email/:token"
+            element={
+              <RedirectIfLoggedIn>
+                <VerifyEmailPage />
+              </RedirectIfLoggedIn>
+            }
+          />
+          <Route
+            path="/resend-verification"
+            element={
+              <RedirectIfLoggedIn>
+                <ResendVerificationPage />
+              </RedirectIfLoggedIn>
+            }
+          />
 
-        {/* Protected Route */}
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute>
-              <CartPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <OrderProcessingPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <ProtectedRoute>
-              <OrdersPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/wishlist"
-          element={
-            <ProtectedRoute>
-              <WishlistPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
+          {/* Protected Route */}
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <CartPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <OrderProcessingPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/wishlist"
+            element={
+              <ProtectedRoute>
+                <WishlistPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRouteAdmin>
-              <DashboardPage />
-            </ProtectedRouteAdmin>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="orders" element={<ManageOrders />} />
-          <Route path="books" element={<ManageBooks />} />
-          <Route path="users" element={<ManageUsers />} />
-        </Route>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRouteAdmin>
+                <DashboardPage />
+              </ProtectedRouteAdmin>
+            }
+          >
+            <Route index element={<Navigate to="dashboard" />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="orders" element={<ManageOrders />} />
+            <Route path="books" element={<ManageBooks />} />
+            <Route path="users" element={<ManageUsers />} />
+          </Route>
 
-        {/* Unauthorize Routes */}
-        <Route path="/unauthorized" element={<UnauthorizePage />} />
+          {/* Unauthorize Routes */}
+          <Route path="/unauthorized" element={<UnauthorizePage />} />
 
-        {/* Catch-All */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+          {/* Catch-All */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
 
-      {/* ScrollToTopButton will appear when scrolling down */}
-      <ScrollToTopButton />
+        {/* ScrollToTopButton will appear when scrolling down */}
+        <ScrollToTopButton />
 
-      {/* <Footer /> */}
-      <Footer />
+        {/* Footer */}
+        <Footer />
+      </AuthVerification>
     </BrowserRouter>
   );
 };

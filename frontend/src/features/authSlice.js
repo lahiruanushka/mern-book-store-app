@@ -1,15 +1,15 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   user: null,
   isAuthenticated: false,
   loading: false,
   error: null,
-  token: null
+  token: null,
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     loginStart: (state) => {
@@ -22,20 +22,25 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.error = null;
-      localStorage.setItem('token', action.payload.token);
+      localStorage.setItem("token", action.payload.token);
     },
     loginFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
     },
+    updateUser: (state, action) => {
+      // Update user data while maintaining authentication status
+      state.user = action.payload;
+    },
     logout: (state) => {
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-    }
-  }
+    },
+  },
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout } = authSlice.actions;
+export const { loginStart, loginSuccess, loginFailure, updateUser, logout } =
+  authSlice.actions;
 export default authSlice.reducer;

@@ -15,6 +15,16 @@ api.interceptors.request.use((config) => {
 export const auth = {
   login: (credentials) => api.post("/auth/login", credentials),
   register: (userData) => api.post("/auth/register", userData),
+  verifyToken: async () => {
+    const response = await api.get("/auth/verify-token");
+    return response.data;
+  },
+  verifyEmail: (token) => {
+    return api.get(`/auth/verify-email/${token}`);
+  },
+  resendVerification: (email) => {
+    return api.post("/auth/resend-verification", { email });
+  },
 };
 
 export const users = {

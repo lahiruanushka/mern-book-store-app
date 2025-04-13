@@ -12,6 +12,14 @@ const userSchema = new mongoose.Schema({
     zipCode: String,
     country: String,
   },
+  verified: {
+    type: Boolean,
+    default: false
+  },
+  verificationToken: String,
+  verificationExpires: Date,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
   createdAt: { type: Date, default: Date.now },
 });
 

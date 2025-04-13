@@ -1,5 +1,4 @@
 import express from "express";
-import loadEnv from "./config/dotenv.js";
 import connectDB from "./config/db.js";
 import bookRoutes from "./routes/bookRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -12,8 +11,11 @@ import dashRoutes from "./routes/dashRoutes.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import logger from "./utils/logger.js";
 import cors from "cors";
+import { verifyConnection } from "./utils/emailService.js";
+import loadEnv from "./config/dotenv.js";
 
 loadEnv();
+
 const port = process.env.PORT || 3000;
 
 const app = express();
@@ -36,9 +38,13 @@ app.use("/api/dashboard", dashRoutes);
 // Error handling middleware
 app.use(errorHandler);
 
-// Connect to MongoDB and start the server
-connectDB().then(() => {
+// connecting to MongoDB before starting the server:
+connectDB().then(async () => {
+  // Start server
   app.listen(port, () => {
     logger.info(`App is listening to port: ${port}`);
   });
+
+  // Verify email connection
+  await verifyConnection();
 });
