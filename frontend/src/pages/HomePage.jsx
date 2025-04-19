@@ -40,6 +40,7 @@ import { books, cart } from "../services/api";
 import BookCard from "../components/BookCard";
 import { useDispatch } from "react-redux";
 import { addToWishlist, removeFromWishlist } from "../features/wishlistSlice";
+import { isValidObjectId } from "../utils/isValidObjectId";
 
 const BOOKS_PER_PAGE = 12;
 
@@ -63,7 +64,6 @@ const HomePage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
 
   const categories = [
     "Fiction",

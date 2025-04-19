@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardMedia,
@@ -10,7 +10,6 @@ import {
   IconButton,
   Tooltip,
   Zoom,
-  Snackbar,
 } from "@mui/material";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
@@ -19,8 +18,9 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import { styled } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import LoginPrompt from "./LoginPrompt"; 
 
-// Styled components for enhanced UI
+// Styled components (same as before)
 const StyledCard = styled(Card)(({ theme }) => ({
   height: "100%",
   display: "flex",
@@ -66,7 +66,18 @@ const BookmarkButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
+
 const BookCard = ({ book, onAddToCart, onWishlistToggle }) => {
+  const fallbackImage =
+    "https://via.placeholder.com/300x450?text=No+Image+Available";
+
+  // State for login prompt
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const [actionType, setActionType] = useState(null);
+
+  // Get user auth state from Redux store
+  const isLoggedIn = useSelector((state) => state.auth?.isAuthenticated || false);
+
   // Get wishlist items from Redux store
   const { items: wishlistItems } = useSelector(
     (state) => state.wishlist || { items: [] }
@@ -75,11 +86,32 @@ const BookCard = ({ book, onAddToCart, onWishlistToggle }) => {
   // Check if current book is in wishlist
   const isInWishlist = wishlistItems?.some((item) => item.bookId === book._id);
 
+  // Calculate average rating from the ratings array
+  const calculateAverageRating = () => {
+    if (!book.ratings || book.ratings.length === 0) return 0;
+    const totalRating = book.ratings.reduce(
+      (sum, item) => sum + item.rating,
+      0
+    );
+    return totalRating / book.ratings.length;
+  };
+
+  const averageRating = calculateAverageRating();
+  const ratingCount = book.ratings?.length || 0;
+
   const handleAddToCart = async () => {
     if (!book || !book._id) {
       console.error("Invalid book data:", book);
       return;
     }
+
+    if (!isLoggedIn) {
+      // Open login prompt with cart action type
+      setActionType("cart");
+      setLoginPromptOpen(true);
+      return;
+    }
+
     onAddToCart(book._id);
   };
 
@@ -88,7 +120,20 @@ const BookCard = ({ book, onAddToCart, onWishlistToggle }) => {
       console.error("Invalid book data:", book);
       return;
     }
+
+    if (!isLoggedIn) {
+      // Open login prompt with wishlist action type
+      setActionType("wishlist");
+      setLoginPromptOpen(true);
+      return;
+    }
+
     onWishlistToggle(book._id, book.title, book.price, isInWishlist);
+  };
+
+  // Close login prompt
+  const handleCloseLoginPrompt = () => {
+    setLoginPromptOpen(false);
   };
 
   return (
@@ -162,13 +207,15 @@ const BookCard = ({ book, onAddToCart, onWishlistToggle }) => {
 
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
             <Rating
-              value={book.rating || 0}
+              name="read-only"
+              value={averageRating}
+              precision={0.1}
               readOnly
-              precision={0.5}
-              sx={{ color: "primary.main" }}
+              size="small"
+              sx={{ mr: 1 }}
             />
-            <Typography variant="body2" sx={{ ml: 1, color: "text.secondary" }}>
-              ({book.ratingCount || 0})
+            <Typography variant="caption" color="text.secondary">
+              {averageRating.toFixed(1)} ({ratingCount} ratings)
             </Typography>
           </Box>
 
@@ -234,6 +281,13 @@ const BookCard = ({ book, onAddToCart, onWishlistToggle }) => {
           )}
         </CardContent>
       </StyledCard>
+
+      {/* Login Prompt Dialog */}
+      <LoginPrompt
+        open={loginPromptOpen}
+        onClose={handleCloseLoginPrompt}
+        actionType={actionType}
+      />
     </>
   );
 };

@@ -15,16 +15,22 @@ import {
   Chip,
   Divider,
   Skeleton,
+  styled,
 } from "@mui/material";
 import {
   ShoppingCart as CartIcon,
-  Favorite as WishlistIcon,
   Share as ShareIcon,
   ReadMore as ReadMoreIcon,
   Star as StarIcon,
 } from "@mui/icons-material";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
 import { books, cart, wishlist, users } from "../services/api";
 import { useParams } from "react-router-dom";
+import LoginPrompt from "../components/LoginPrompt";
+import { useDispatch, useSelector } from "react-redux";
+import { addToWishlist, removeFromWishlist } from "../features/wishlistSlice";
+import { isValidObjectId } from "../utils/isValidObjectId";
 
 const BookDetailsSkeleton = () => (
   <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -93,7 +99,6 @@ const BookDetailsSkeleton = () => (
   </Container>
 );
 
-
 const BookDetailsPage = () => {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -107,6 +112,22 @@ const BookDetailsPage = () => {
     message: "",
     severity: "success",
   });
+
+  // State for login prompt
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const [actionType, setActionType] = useState(null);
+
+  const dispatch = useDispatch();
+
+  // Get wishlist items from Redux store
+  const { items: wishlistItems } = useSelector(
+    (state) => state.wishlist || { items: [] }
+  );
+
+  // Get user auth state from Redux store
+  const isLoggedIn = useSelector(
+    (state) => state.auth?.isAuthenticated || false
+  );
 
   const { id: bookId } = useParams();
 
@@ -181,12 +202,19 @@ const BookDetailsPage = () => {
 
   // Call fetchRatingUsers when book data is loaded
   useEffect(() => {
-    if (book && book.ratings.length > 0) {
+    if (book && book.ratings && book.ratings.length > 0) {
       fetchRatingUsers();
     }
   }, [book]);
 
   const handleAddToCart = async () => {
+    if (!isLoggedIn) {
+      // Open login prompt with cart action type
+      setActionType("cart");
+      setLoginPromptOpen(true);
+      return;
+    }
+
     try {
       await cart.addItem(book._id, quantity);
       setSnackbar({
@@ -203,25 +231,65 @@ const BookDetailsPage = () => {
     }
   };
 
-  const handleAddToWishlist = async () => {
+  // Handler for toggling wishlist
+  const wishlistToggle = async (bookId, title, price, inWishlist) => {
     try {
-      await wishlist.addItem({
-        bookId: book._id,
-        title: book.title,
-        price: book.price,
-      });
-      setSnackbar({
-        open: true,
-        message: "Book added to wishlist!",
-        severity: "success",
-      });
+      // Validate the bookId format before dispatching
+      if (!isValidObjectId(bookId)) {
+        throw new Error("Invalid book ID format");
+      }
+
+      if (inWishlist) {
+        await dispatch(removeFromWishlist(bookId)).unwrap();
+
+        setSnackbar({
+          // Fixed: changed from snackbar() to setSnackbar()
+          open: true,
+          message: "Book removed from wishlist!",
+          severity: "success",
+        });
+      } else {
+        await dispatch(
+          addToWishlist({
+            bookId,
+            title,
+            price,
+          })
+        ).unwrap();
+
+        setSnackbar({
+          open: true,
+          message: "Book added to wishlist!",
+          severity: "success",
+        });
+      }
     } catch (error) {
+      console.error("Failed to update wishlist:", error);
+
       setSnackbar({
         open: true,
-        message: "Failed to add book to wishlist",
+        message: "Failed to update wishlist",
         severity: "error",
       });
     }
+  };
+
+  const handleWishlistToggle = () => {
+    if (!book || !book._id) {
+      console.error("Invalid book data:", book);
+      return;
+    }
+
+    if (!isLoggedIn) {
+      // Open login prompt with wishlist action type
+      setActionType("wishlist");
+      setLoginPromptOpen(true);
+      return;
+    }
+
+    // Check if book is in wishlist here to avoid null reference
+    const inWishlist = wishlistItems?.some((item) => item.bookId === book._id);
+    wishlistToggle(book._id, book.title, book.price, inWishlist);
   };
 
   const handleSubmitReview = async () => {
@@ -250,30 +318,29 @@ const BookDetailsPage = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  // Close login prompt
+  const handleCloseLoginPrompt = () => {
+    setLoginPromptOpen(false);
+  };
+
   // New function to handle book sharing
   const handleShareBook = () => {
     if (navigator.share) {
       navigator.share({
         title: book.title,
         text: `Check out this book: ${book.title} by ${book.author}`,
-        url: window.location.href
+        url: window.location.href,
       });
     } else {
       setSnackbar({
         open: true,
         message: "Sharing not supported on this device",
-        severity: "info"
+        severity: "info",
       });
     }
   };
 
-  // Compute average rating
-  const averageRating = book?.ratings?.length 
-    ? book.ratings.reduce((sum, r) => sum + r.rating, 0) / book.ratings.length 
-    : 0;
-
-
-      // Error state handling
+  // Error state handling
   if (error) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -297,48 +364,56 @@ const BookDetailsPage = () => {
     );
   }
 
+  // Compute average rating
+  const averageRating = book.ratings?.length
+    ? book.ratings.reduce((sum, r) => sum + r.rating, 0) / book.ratings.length
+    : 0;
+
+  // Check if book is in wishlist (safely)
+  const isInWishlist = wishlistItems?.some((item) => item.bookId === book._id);
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Grid container spacing={4}>
         {/* Enhanced Book Image Section */}
         <Grid item xs={12} md={5}>
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              position: 'relative',
-              height: 500, 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              overflow: 'hidden',
-              transition: 'transform 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.02)'
-              }
+          <Paper
+            elevation={4}
+            sx={{
+              position: "relative",
+              height: 500,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              overflow: "hidden",
+              transition: "transform 0.3s ease",
+              "&:hover": {
+                transform: "scale(1.02)",
+              },
             }}
           >
             <img
               src={book.imageUrl}
               alt={book.title}
               style={{
-                maxWidth: '90%',
-                maxHeight: '90%',
-                objectFit: 'contain',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                maxWidth: "90%",
+                maxHeight: "90%",
+                objectFit: "contain",
+                borderRadius: "8px",
+                boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
               }}
             />
             <Tooltip title="Share Book">
               <IconButton
                 onClick={handleShareBook}
                 sx={{
-                  position: 'absolute',
+                  position: "absolute",
                   top: 10,
                   right: 10,
-                  backgroundColor: 'rgba(255,255,255,0.7)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.9)'
-                  }
+                  backgroundColor: "rgba(255,255,255,0.7)",
+                  "&:hover": {
+                    backgroundColor: "rgba(255,255,255,0.9)",
+                  },
                 }}
               >
                 <ShareIcon />
@@ -349,7 +424,9 @@ const BookDetailsPage = () => {
 
         {/* Enhanced Book Details Section */}
         <Grid item xs={12} md={7}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Box
+            sx={{ display: "flex", flexDirection: "column", height: "100%" }}
+          >
             <Typography variant="h3" fontWeight="bold" gutterBottom>
               {book.title}
             </Typography>
@@ -357,18 +434,20 @@ const BookDetailsPage = () => {
               by {book.author}
             </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', my: 2, gap: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", my: 2, gap: 2 }}>
               <Rating
                 value={averageRating}
                 precision={0.5}
                 readOnly
                 size="large"
               />
-              <Chip 
-                icon={<StarIcon />} 
-                label={`${averageRating.toFixed(1)} (${book.ratings.length} reviews)`} 
-                color="primary" 
-                variant="outlined" 
+              <Chip
+                icon={<StarIcon />}
+                label={`${averageRating.toFixed(1)} (${
+                  book.ratings.length
+                } reviews)`}
+                color="primary"
+                variant="outlined"
               />
             </Box>
 
@@ -380,7 +459,7 @@ const BookDetailsPage = () => {
               {book.description}
             </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, my: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, my: 2 }}>
               <TextField
                 type="number"
                 label="Quantity"
@@ -401,31 +480,38 @@ const BookDetailsPage = () => {
                 sx={{
                   px: 3,
                   py: 1.5,
-                  '&:hover': {
-                    backgroundColor: 'primary.dark'
-                  }
+                  "&:hover": {
+                    backgroundColor: "primary.dark",
+                  },
                 }}
               >
                 Add to Cart
               </Button>
-              <Tooltip title="Add to Wishlist">
+
+              <Tooltip
+                title={
+                  isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"
+                }
+              >
                 <IconButton
-                  color="secondary"
-                  onClick={handleAddToWishlist}
-                  aria-label="Add to Wishlist"
+                  onClick={handleWishlistToggle}
+                  color={isInWishlist ? "primary" : "default"}
                   sx={{
-                    border: '1px solid',
-                    borderColor: 'secondary.main'
+                    border: "1px solid",
+                    borderColor: isInWishlist ? "primary.main" : "divider",
                   }}
                 >
-                  <WishlistIcon />
+                  {isInWishlist ? <BookmarkIcon /> : <BookmarkBorderIcon />}
                 </IconButton>
               </Tooltip>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+            <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
               <Chip label={`ISBN: ${book.isbn}`} variant="outlined" />
-              <Chip label={`Published: ${book.publishYear}`} variant="outlined" />
+              <Chip
+                label={`Published: ${book.publishYear}`}
+                variant="outlined"
+              />
             </Box>
           </Box>
         </Grid>
@@ -433,23 +519,40 @@ const BookDetailsPage = () => {
         {/* Enhanced Reviews Section */}
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3, mt: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 3,
+              }}
+            >
               <Typography variant="h5" fontWeight="bold">
                 Customer Reviews
               </Typography>
-              <Chip 
-                icon={<ReadMoreIcon />} 
-                label={`${book.ratings.length} Total Reviews`} 
-                color="secondary" 
-                variant="outlined" 
+              <Chip
+                icon={<ReadMoreIcon />}
+                label={`${book.ratings.length} Total Reviews`}
+                color="secondary"
+                variant="outlined"
               />
             </Box>
 
             <Divider sx={{ mb: 3 }} />
 
             {book.ratings.map((rating, index) => (
-              <Box key={index} sx={{ mb: 3, p: 2, borderRadius: 2, backgroundColor: 'action.hover' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+              <Box
+                key={index}
+                sx={{
+                  mb: 3,
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: "action.hover",
+                }}
+              >
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}
+                >
                   <Rating value={rating.rating} readOnly size="small" />
                   <Typography variant="body2" color="text.secondary">
                     {ratingUsers[rating.user] || "Anonymous"}
@@ -462,7 +565,9 @@ const BookDetailsPage = () => {
             <Divider sx={{ my: 3 }} />
 
             <Box>
-              <Typography variant="h6" sx={{ mb: 2 }}>Write a Review</Typography>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Write a Review
+              </Typography>
               <Rating
                 value={rating}
                 onChange={(event, newValue) => setRating(newValue)}
@@ -506,6 +611,13 @@ const BookDetailsPage = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Login Prompt Dialog */}
+      <LoginPrompt
+        open={loginPromptOpen}
+        onClose={handleCloseLoginPrompt}
+        actionType={actionType}
+      />
     </Container>
   );
 };
