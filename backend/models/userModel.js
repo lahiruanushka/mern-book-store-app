@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
   },
   verified: {
     type: Boolean,
-    default: false
+    default: false,
   },
   verificationToken: String,
   verificationExpires: Date,
@@ -23,4 +23,4 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model("User", userSchema);
