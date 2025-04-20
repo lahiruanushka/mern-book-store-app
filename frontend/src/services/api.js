@@ -25,6 +25,10 @@ export const auth = {
   resendVerification: (email) => {
     return api.post("/auth/resend-verification", { email });
   },
+  forgotPassword: (email) => api.post("/auth/forgot-password", { email }),
+  validateResetToken: (token) => api.get(`/auth/reset-password/${token}`),
+  resetPassword: (token, password) =>
+    api.post(`/auth/reset-password/${token}`, { password }),
 };
 
 export const users = {

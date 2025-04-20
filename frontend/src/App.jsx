@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Pages
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
 import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import WishlistPage from "./pages/WishlistPage";
@@ -12,7 +12,7 @@ import OrderProcessingPage from "./pages/OrderProcessingPage";
 import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
 import NewReleasesPage from "./pages/NewReleasesPage";
-import VerifyEmailPage from "./pages/VerifyEmailPage";
+import VerifyEmailPage from "./pages/auth/VerifyEmailPage";
 import ResendVerificationPage from "./pages/ResendVerificationPage";
 import UnauthorizePage from "./pages/UnauthorizePage";
 import DashboardPage from "./pages/admin/DashboardPage";
@@ -32,6 +32,8 @@ import ManageOrders from "./components/admin/ManageOrders";
 import ManageBooks from "./components/admin/ManageBooks";
 import ManageUsers from "./components/admin/ManageUsers";
 import AuthVerification from "./components/auth/AuthVerification";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 const App = () => {
   return (
@@ -77,6 +79,22 @@ const App = () => {
             element={
               <RedirectIfLoggedIn>
                 <ResendVerificationPage />
+              </RedirectIfLoggedIn>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <RedirectIfLoggedIn>
+                <ForgotPasswordPage />
+              </RedirectIfLoggedIn>
+            }
+          />
+          <Route
+            path="/reset-password/:token"
+            element={
+              <RedirectIfLoggedIn>
+                <ResetPasswordPage />
               </RedirectIfLoggedIn>
             }
           />

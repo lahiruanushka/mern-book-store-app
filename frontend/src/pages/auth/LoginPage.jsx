@@ -14,8 +14,8 @@ import {
   Paper,
   CircularProgress,
 } from "@mui/material";
-import { auth } from "../services/api";
-import { loginSuccess } from "../features/authSlice";
+import { auth } from "../../services/api";
+import { loginSuccess } from "../../features/authSlice";
 
 const schema = yup.object().shape({
   email: yup

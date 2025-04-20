@@ -16,7 +16,7 @@ import {
   Step,
   StepLabel,
 } from "@mui/material";
-import { auth } from "../services/api";
+import { auth } from "../../services/api";
 
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),

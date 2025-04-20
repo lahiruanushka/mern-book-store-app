@@ -13,4 +13,9 @@ router.post("/resend-verification", authController.resendVerification);
 // Protected routes - require valid token
 router.get("/verify-token", auth, authController.verifyToken);
 
+// Password reset routes
+router.post('/forgot-password', authController.forgotPassword);
+router.get('/reset-password/:token', authController.validateResetToken);
+router.post('/reset-password/:token', authController.resetPassword);
+
 export default router;
