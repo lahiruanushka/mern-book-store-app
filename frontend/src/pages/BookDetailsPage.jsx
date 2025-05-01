@@ -293,6 +293,13 @@ const BookDetailsPage = () => {
   };
 
   const handleSubmitReview = async () => {
+    if (!isLoggedIn) {
+      // Open login prompt with wishlist action type
+      setActionType("wishlist");
+      setLoginPromptOpen(true);
+      return;
+    }
+
     try {
       await books.addRating(book._id, {
         rating,
