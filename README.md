@@ -29,7 +29,7 @@ BookWhiz is a MERN-based bookstore application that provides users with a seamle
 ## Features 🚀
 
 ### Customers:
-- **User Registration and Login:** Secure token-based authentication for a seamless experience.
+- **User Registration and Login:** User email verification and secure token-based authentication ensure a seamless experience.
 - **Cart Management:** Easily add, remove, and modify items in the cart.
 - **Wishlist:** Save favorite books for future purchases.
 - **Order Books:** Place orders effortlessly (payment functionality coming soon).
