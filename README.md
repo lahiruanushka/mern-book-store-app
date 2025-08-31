@@ -163,4 +163,5 @@ This project is licensed under the [MIT License](LICENSE).
 Feel free to reach out for any queries or suggestions:
 - **Name**: Lahiru Anushka
 - **GitHub**: [github.com/lahiruanushka](https://github.com/lahiruanushka)
-- **Email**: [lahiruanushkaofficial@gmail.com](mailto:lahiruanushkaofficial@gmail.com)
+- **Email**: [lahiruanushkarathnayake@gmail.com](mailto:lahiruanushkarathnayake@gmail.com)
+
